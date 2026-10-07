@@ -1,0 +1,17 @@
+{
+  "name": "class-seat-betting",
+  "private": true,
+  "description": "실시간 토큰 베팅 학급 자리 배치 (GitHub Pages + Firebase Realtime Database)",
+  "type": "module",
+  "scripts": {
+    "test:core": "node tests/core.test.mjs",
+    "test:rules": "firebase emulators:exec --only database --project demo-classseat \"node tests/rules.test.mjs\"",
+    "emulators": "firebase emulators:start --only auth,database --project demo-classseat",
+    "serve": "python3 -m http.server 8765"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.0",
+    "firebase": "^12.19.0",
+    "firebase-tools": "^15.0.0"
+  }
+}

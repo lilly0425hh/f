@@ -1,0 +1,110 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
+    },
+    "roomIndex": {
+      ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+      "$room": {
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true"
+      }
+    },
+    "pinKeys": {
+      "$room": {
+        ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        "$hash": {
+          ".read": "auth != null",
+          ".validate": "newData.val() === true && $hash.matches(/^[0-9a-f]{64}$/)"
+        }
+      }
+    },
+    "rooms": {
+      "$room": {
+        ".read": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        ".write": "auth != null && root.child('admins').child(auth.uid).val() === true",
+        "config": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
+        },
+        "state": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()",
+          "phase": {
+            ".validate": "newData.isString() && (newData.val() === 'setup' || newData.val() === 'betting' || newData.val() === 'locked' || newData.val() === 'drawing' || newData.val() === 'done')"
+          }
+        },
+        "roster": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
+        },
+        "members": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && auth.uid === $uid && newData.exists()",
+            ".validate": "newData.hasChildren(['k']) && newData.child('k').isString() && newData.child('k').val().matches(/^[0-9a-f]{64}$/) && root.child('pinKeys').child($room).child(newData.child('k').val()).exists()",
+            "k": {},
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "bindings": {
+          "$sid": {
+            ".read": "(auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()) && (!data.exists() || data.child('uid').val() === auth.uid)",
+            ".write": "(auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()) && !data.exists() && newData.exists() && newData.child('uid').val() === auth.uid && root.child('rooms').child($room).child('roster').child($sid).child('name').val() === newData.child('name').val() && !root.child('rooms').child($room).child('uids').child(auth.uid).exists()",
+            ".validate": "newData.hasChildren(['uid', 'name'])",
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "name": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "uids": {
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "(auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()) && auth.uid === $uid && newData.isString() && root.child('rooms').child($room).child('bindings').child(newData.val()).child('uid').val() === auth.uid",
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          }
+        },
+        "bets": {
+          "$sid": {
+            ".read": "auth != null && root.child('rooms').child($room).child('bindings').child($sid).child('uid').val() === auth.uid",
+            ".write": "auth != null && root.child('rooms').child($room).child('bindings').child($sid).child('uid').val() === auth.uid && root.child('rooms').child($room).child('state').child('phase').val() === 'betting'",
+            ".validate": "newData.hasChildren(['confirmed', 'submittedAt'])",
+            "seats": {
+              "$seat": {
+                ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() % 1 === 0 && newData.val() <= root.child('rooms').child($room).child('config').child('budget').val() && root.child('rooms').child($room).child('config').child('seats').child($seat).val() === true"
+              }
+            },
+            "confirmed": {
+              ".validate": "newData.isBoolean()"
+            },
+            "submittedAt": {
+              ".validate": "newData.isNumber() && newData.val() <= now"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "totals": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()",
+          "$seat": {
+            ".write": "(auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()) && root.child('rooms').child($room).child('uids').child(auth.uid).exists() && root.child('rooms').child($room).child('state').child('phase').val() === 'betting' && newData.val() - (data.exists() ? data.val() : 0) <= root.child('rooms').child($room).child('config').child('budget').val() && (data.exists() ? data.val() : 0) - newData.val() <= root.child('rooms').child($room).child('config').child('budget').val()",
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() % 1 === 0 && newData.val() <= 100000"
+          }
+        },
+        "result": {
+          ".read": "(auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()) && root.child('rooms').child($room).child('state').child('phase').val() === 'done'"
+        }
+      }
+    }
+  }
+}
