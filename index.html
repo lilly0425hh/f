@@ -667,7 +667,7 @@ async function createDemoBackend() {
     if (b === 'members') return p.length === 4 && c === uidOf[role];
     if (b === 'uids') return p.length === 4 && c === uidOf[role];
     if (!member(role, room)) return false;
-    if (['config', 'state', 'roster', 'totals'].includes(b)) return true;
+    if (['config', 'state', 'roster', 'totals', 'history'].includes(b)) return true;
     if (b === 'bindings') return p.length === 4 && (!getAt(['rooms', room, 'bindings', c]) || myBinding(role, room, c));
     if (b === 'bets') return p.length === 4 && myBinding(role, room, c);
     if (b === 'result') return phase(room) === 'done';
@@ -833,6 +833,31 @@ function buildGrid(cfg, { onSeat } = {}) {
   };
 }
 
+// 지난 회차 자리 카드(학생·교사 공용). history: { 회차번호: { round, layout, assign, types } }
+function makeHistoryCard() {
+  let sel = null, lastSig = '', last = { history: null, roster: null, me: null };
+  const select = h('select', { class: 'input', style: { width: 'auto', padding: '6px 10px', fontWeight: 700 }, onchange: (e) => { sel = +e.target.value; render(); } });
+  const meta = h('p', { class: 'small muted', style: { margin: '-4px 0 12px' } }), gridHost = h('div');
+  const el = h('div', { class: 'card hidden' }, h('div', { class: 'row', style: { marginBottom: '8px' } }, h('h2', { style: { margin: 0 } }, '지난 회차 자리'), h('span', { class: 'grow' }), select), meta, gridHost);
+  function render() {
+    const { history, roster, me } = last, rounds = Object.keys(history || {}).map(Number).sort((a, b) => b - a);
+    el.classList.toggle('hidden', !rounds.length);
+    if (!rounds.length) { lastSig = ''; return; }
+    if (!rounds.includes(sel)) sel = rounds[0];
+    const e = history[sel], sig = JSON.stringify([sel, rounds, e, me, roster]);
+    if (sig === lastSig) return; lastSig = sig;
+    put(select, ...rounds.map((r) => h('option', { value: r, selected: r === sel }, `${r}회차`)));
+    select.classList.toggle('hidden', rounds.length < 2);
+    const grid = buildGrid(e.layout), bySeat = {};
+    for (const [sid, seat] of Object.entries(e.assign || {})) bySeat[seat] = sid;
+    const ty = e.types || {};
+    for (const id of activeSeatIds(e.layout)) { const sid = bySeat[id]; grid.set(id, { name: sid ? (roster?.[sid]?.name || sid) : '', tag: sid ? (ty[sid] === 'bet' ? '🎯' : ty[sid] === 'random' ? '🎲' : null) : null, heat: 0, cls: { me: !!me && sid === me, empty: !sid, static: true } }); }
+    put(gridHost, grid.el);
+    meta.textContent = `${sel}회차 최종 배치 · ${Object.keys(e.assign || {}).length}명` + (me && e.assign?.[me] ? ` · 내 자리 ${seatLabel(e.assign[me])}` : '');
+  }
+  return { el, update(history, roster, me) { last = { history, roster, me }; render(); } };
+}
+
 // 효과음: Web Audio로 직접 합성(외부 음원 없음)
 const Snd = {
   ctx: null, muted: !!ls.get('mute', false),
@@ -970,7 +995,7 @@ async function enterStudent(sess) {
   teardown(); setWide(false);
   const { code, sid } = sess, be = App.be;
   mount(bootCard('방에 입장하는 중…'));
-  const St = { cfg: null, state: null, roster: null, totals: {}, bet: null, betLoaded: false, result: null };
+  const St = { cfg: null, state: null, roster: null, totals: {}, history: {}, bet: null, betLoaded: false, result: null };
   let view = null, resultUnsub = null, failed = false;
   const leave = () => { ls.del('session'); showLogin(); };
   const fail = (e) => {
@@ -989,6 +1014,8 @@ async function enterStudent(sess) {
   sub('state', (v) => { St.state = v; syncResult(); refresh(); });
   sub('roster', (v) => { St.roster = v || {}; refresh(); });
   sub('totals', (v) => { St.totals = v || {}; refresh(); });
+  // 지난 회차 자리는 부가 기능이므로, 읽기 규칙이 아직 갱신되지 않았더라도 입장 자체를 막지 않는다.
+  App.off.push(be.on('student', `rooms/${code}/history`, (v) => { St.history = v || {}; refresh(); }, () => {}));
   sub(`bets/${sid}`, (v) => { St.bet = v; St.betLoaded = true; refresh(); });
   watchNetwork(be, 'student');
   setTimeout(() => { if (!view && !failed) fail(userErr('방 정보를 불러오지 못했어요. 방이 삭제되었거나 아직 준비되지 않았을 수 있어요.')); }, 9000);
@@ -1004,6 +1031,7 @@ function buildStudentView(St, sess, leave) {
   const confirmBtn = h('button', { class: 'btn primary big block', onclick: () => confirmBet() }, '베팅 확정하기');
   const dock = h('div', { class: 'dock' }, h('div', { class: 'in' }, confirmBtn));
   let tokenCard;
+  const histCard = makeHistoryCard();
   const seatTitle = h('h2', null, '자리 현황');
   const seatHint = h('p', { class: 'small muted', style: { margin: '-6px 0 12px' } });
 
@@ -1106,6 +1134,7 @@ function buildStudentView(St, sess, leave) {
     put(listHost, mineList.length ? h('div', { class: 'col', style: { gap: '8px' } }, mineList.map(([id, n]) =>
       h('div', { class: 'row' }, h('span', { class: 'chip blue' }, seatLabel(id)), h('b', null, n + '개'), h('span', { class: 'grow' }),
         ph === 'betting' && h('button', { class: 'btn sm ghost', onclick: () => setSeat(id, 0) }, '회수')))) : h('p', { class: 'muted small' }, '아직 건 토큰이 없어요.'));
+    histCard.update(St.history, St.roster, sid);
     confirmBtn.disabled = ph !== 'betting' || saving || !dirty;
     confirmBtn.textContent = saving ? '저장 중…' : (confirmed && !dirty ? '확정 완료 ✓' : (confirmed ? '수정한 베팅 다시 확정하기' : '베팅 확정하기'));
     dock.classList.toggle('hidden', ph === 'done' || ph === 'setup');
@@ -1119,6 +1148,7 @@ function buildStudentView(St, sess, leave) {
     tokenCard = h('div', { class: 'card' }, h('div', { class: 'tokenhead' }, h('div', null, h('p', { class: 'small muted' }, '남은 토큰'), h('div', { class: 'big' }, leftEl, budgetEl)), chipHost), h('div', { style: { height: '12px' } }), h('div', { class: 'progress' }, bar), noteHost),
     meCard,
     h('div', { class: 'card' }, seatTitle, seatHint, gridHost),
+    histCard.el,
     h('div', { class: 'card' }, h('h2', null, '내 베팅'), listHost),
     h('details', { class: 'card', style: { background: '#fff' } }, h('summary', null, '🎲 추첨은 이렇게 진행돼요'),
       h('p', null, '토큰 1개 = 추첨권 1장이에요. 통에서 한 장씩 뽑아 그 주인을 그 자리에 앉히고, 앉은 학생의 나머지 추첨권과 그 자리의 다른 추첨권은 버려요. 이렇게 추첨권이 다 없어질 때까지 반복하고, 남은 학생은 빈자리에 무작위로 배치돼요.'),
@@ -1241,9 +1271,14 @@ function enterTeacher() {
   }
   async function revealResult() { await call({ [base() + 'state/phase']: 'done' }); }
   async function newRound() {
-    const { round } = derive();
-    if (!(await confirmBox('새 회차를 시작할까요?', `${round}회차의 베팅·합계·추첨 결과가 모두 삭제되고, 모든 학생이 토큰 100개로 리셋돼요.\n(명단·입장 정보·자리 구조는 유지돼요.)`, '새 회차 시작', true))) return;
-    await call({ [base() + 'bets']: null, [base() + 'totals']: null, [base() + 'result']: null, [base() + 'audit']: null, [base() + 'state/round']: round + 1, [base() + 'state/phase']: 'setup' });
+    const { round, D, cfg } = derive(), keep = !!D.result?.assign;
+    if (!(await confirmBox('새 회차를 시작할까요?', `${round}회차의 베팅·합계·추첨 상세 기록은 삭제되고, 모든 학생이 토큰 100개로 리셋돼요.\n${keep ? `${round}회차의 최종 자리 배치는 "지난 회차 자리"로 보관돼요(학생도 볼 수 있어요).\n` : ''}(명단·입장 정보·자리 구조는 유지돼요.)`, '새 회차 시작', true))) return;
+    const upd = { [base() + 'bets']: null, [base() + 'totals']: null, [base() + 'result']: null, [base() + 'audit']: null, [base() + 'state/round']: round + 1, [base() + 'state/phase']: 'setup' };
+    if (keep) { // 지우기 전에 최종 배치(수동 교환 반영)와 당시 자리 구조를 보관한다
+      const types = {}; for (const o of asList(D.result.order)) types[o.sid] = o.type;
+      upd[base() + `history/${round}`] = clean({ round, layout: { rows: cfg.rows, cols: cfg.cols, groups: cfg.groups, mode: cfg.mode, aisle: cfg.aisle, mirror: cfg.mirror, deskPos: cfg.deskPos, disabled: cfg.disabled }, assign: D.result.assign, types, createdAt: D.result.createdAt });
+    }
+    await call(upd);
     T.swapMode = false; T.swapFirst = null; toast(`${round + 1}회차를 준비했어요`, 'ok');
   }
   async function resetBinding(sid) {
@@ -1268,8 +1303,8 @@ function enterTeacher() {
   }
 
   // ── 대시보드 렌더
-  const phaseCard = h('div', { class: 'card' }), gridTitle = h('h2', null, '자리 현황'), gridHost = h('div'), detailHost = h('div'), subHost = h('div', { class: 'card' }), auditHost = h('div');
-  const dash = h('div', { class: 'tgrid' }, h('div', null, phaseCard, h('div', { class: 'card' }, gridTitle, gridHost, detailHost), auditHost), h('div', null, subHost));
+  const historyCard = makeHistoryCard(), phaseCard = h('div', { class: 'card' }), gridTitle = h('h2', null, '자리 현황'), gridHost = h('div'), detailHost = h('div'), subHost = h('div', { class: 'card' }), auditHost = h('div');
+  const dash = h('div', { class: 'tgrid' }, h('div', null, phaseCard, h('div', { class: 'card' }, gridTitle, gridHost, detailHost), historyCard.el, auditHost), h('div', null, subHost));
 
   function render() {
     put(phaseHost, );
@@ -1351,6 +1386,7 @@ function enterTeacher() {
       A && h('details', null, h('summary', null, '단계별 추첨 로그'), h('div', { class: 'scroll', style: { marginTop: '8px' } }, h('table', null, h('thead', null, h('tr', null, ['#', '학생', '자리', '걸린 토큰', '당시 전체 추첨권'].map((x) => h('th', null, x)))),
         h('tbody', null, asList(A.steps).map((s) => h('tr', null, h('td', null, s.i), h('td', null, D.roster[s.sid]?.name || s.sid), h('td', null, seatLabel(s.seat)), h('td', null, s.w), h('td', null, `${s.total} (확률 ${(s.w / s.total * 100).toFixed(1)}%)`))))))),
       swaps.length ? h('details', { open: true }, h('summary', null, `수동 교환 내역 ${swaps.length}건`), swaps.map((s) => h('p', { class: 'small' }, `${s.a ? D.roster[s.a]?.name : '빈자리'} (${seatLabel(s.seatA)}) ↔ ${s.b ? D.roster[s.b]?.name : '빈자리'} (${seatLabel(s.seatB)})${s.forced ? ' ⚠️강행' : ''}`))) : null)] : []));
+    historyCard.update(D.history, D.roster, null);
     T.tvCtl && T.tvCtl.refresh();
   }
   function onSeatClick(id, off) {
@@ -1536,7 +1572,7 @@ function enterTeacher() {
         h('div', null, h('h3', null, '개인정보 정리'), h('p', { class: 'small muted' }, '명단(학번·이름), 입장 정보, 베팅, 합계, 추첨 결과를 모두 삭제해요. 학기가 끝났거나 사용을 마쳤다면 꼭 실행하세요. 방 자체는 남아요.'), h('div', { style: { height: '8px' } }),
           h('button', { class: 'btn danger', onclick: guard(async () => {
             if (!(await askText('개인정보 일괄 삭제', `"${T.code}" 방의 명단·입장 정보·베팅·결과가 모두 삭제돼요.\n계속하려면 방 코드를 입력하세요.`, T.code))) return;
-            await call({ [base() + 'roster']: null, [base() + 'bindings']: null, [base() + 'uids']: null, [base() + 'bets']: null, [base() + 'totals']: null, [base() + 'result']: null, [base() + 'audit']: null, [base() + 'constraints']: null, [base() + 'state/phase']: 'setup' });
+            await call({ [base() + 'roster']: null, [base() + 'bindings']: null, [base() + 'uids']: null, [base() + 'bets']: null, [base() + 'totals']: null, [base() + 'result']: null, [base() + 'audit']: null, [base() + 'constraints']: null, [base() + 'history']: null, [base() + 'state/phase']: 'setup' });
             toast('삭제했어요', 'ok');
           }) }, '명단·베팅·결과 일괄 삭제')));
     }

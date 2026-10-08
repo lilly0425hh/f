@@ -103,6 +103,9 @@
         },
         "result": {
           ".read": "(auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()) && root.child('rooms').child($room).child('state').child('phase').val() === 'done'"
+        },
+        "history": {
+          ".read": "auth != null && root.child('rooms').child($room).child('members').child(auth.uid).exists()"
         }
       }
     }

@@ -141,6 +141,17 @@ await t('일반 사용자: roomIndex 쓰기 실패', ctx('u1').ref('roomIndex/rx
 await t('일반 사용자: pinKeys 쓰기 실패', ctx('u1').ref(`pinKeys/r1/${H2}`).set(true), false);
 await t('비로그인: 모든 읽기 실패', env.unauthenticatedContext().database().ref(`pinKeys/r1/${H}`).get(), false);
 
+console.log('\n[7] 지난 회차 자리(history)');
+await seed(); await join('u1', 's1', '김가');
+await admin().ref('rooms/r1/history/1').set({ round: 1, layout: { rows: 6, cols: 6, groups: 3 }, assign: { s1: 'r1c1' }, types: { s1: 'bet' } });
+await t('member는 history 읽기 성공(어느 단계에서든)', ctx('u1').ref('rooms/r1/history').get());
+await t('member는 특정 회차 history 읽기 성공', ctx('u1').ref('rooms/r1/history/1').get());
+await t('비member는 history 읽기 실패', ctx('u9').ref('rooms/r1/history').get(), false);
+await t('학생의 history 쓰기 실패', ctx('u1').ref('rooms/r1/history/2').set({ round: 2, assign: { s1: 'r1c2' } }), false);
+await t('학생의 history 수정 실패', ctx('u1').ref('rooms/r1/history/1/assign/s1').set('r1c2'), false);
+await t('학생의 history 삭제 실패', ctx('u1').ref('rooms/r1/history').remove(), false);
+await t('교사: 새 회차 일괄 갱신(삭제 + history 보관)', admin().ref().update({ 'rooms/r1/bets': null, 'rooms/r1/result': null, 'rooms/r1/history/2': { round: 2, assign: { s1: 'r1c2' } } }));
+
 console.log(`\n결과: 통과 ${pass} / 실패 ${fail}`);
 await env.cleanup();
 process.exit(fail ? 1 : 0);
