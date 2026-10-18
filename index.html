@@ -107,7 +107,9 @@ th{font-size:12.5px;color:var(--ink3);font-weight:600;position:sticky;top:0;back
 .seat .badge.draft{background:#fff;color:var(--pri);border:1.5px dashed var(--pri);box-shadow:none}
 @keyframes badgein{from{transform:scale(0)}}
 .seat .nm{font-weight:700;font-size:max(9px,calc(100cqw / var(--n) * .24));word-break:keep-all;text-align:center;padding:0 2px}
-.seat .tag{position:absolute;bottom:2px;right:3px;font-size:max(8px,calc(100cqw / var(--n) * .19))}
+.seat .tag{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);padding:0 .4em;border-radius:99px;background:rgba(15,23,42,.09);color:var(--ink2);font-weight:700;font-size:max(8px,calc(100cqw / var(--n) * .15));line-height:1.5;white-space:nowrap}
+.seat .nm.long{font-size:max(9px,calc(100cqw / var(--n) * .19))}
+.icon-btn{padding:0;width:38px;min-height:34px}
 .seat.off{background:transparent;border:1.5px dashed #d3d8de;cursor:default;color:#c1c7ce}
 .seat.off .num{font-size:max(11px,calc(100cqw / var(--n) * .3));font-weight:600}
 .seat.sel{border-color:var(--pri);box-shadow:0 0 0 3px rgba(49,130,246,.25)}
@@ -166,29 +168,50 @@ pre.log{background:#0f1520;color:#cfe3ff;border-radius:14px;padding:14px;font-si
 .demo-flag{background:var(--warn);color:#2b1d00;font-weight:800;font-size:12px;padding:3px 9px;border-radius:99px}
 .bar{height:8px;border-radius:99px;background:var(--pri);min-width:3px}
 
-/* TV */
-#tv{position:fixed;inset:0;z-index:80;background:radial-gradient(1200px 700px at 50% -10%,#1a2440,#0a0d14 70%);color:#f2f5fa;display:flex;flex-direction:column;padding:2.2vh 3vw;gap:1.6vh}
-#tv .tvtop{display:flex;align-items:center;gap:14px}
-#tv .tvtitle{font-size:clamp(20px,3.4vh,40px);font-weight:800;letter-spacing:-.02em}
-#tv .tvsub{color:#9fb0cc;font-size:clamp(14px,2.2vh,24px)}
-#tv .btn{background:rgba(255,255,255,.1);color:#fff;box-shadow:none}
-#tv .btn:hover{background:rgba(255,255,255,.2)}
+/* TV: 기본은 밝은 화면(교실 뒤에서도 읽히도록 대비를 크게), 어둡게는 선택 */
+#tv{position:fixed;inset:0;z-index:80;background:#f3f5f8;color:#0f172a;display:flex;flex-direction:column;padding:2.2vh 3vw;gap:1.6vh}
+#tv .tvtop{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#tv .tvtitle{font-size:clamp(22px,3.8vh,44px);font-weight:800;letter-spacing:-.02em;color:#0f172a}
+#tv .tvsub{color:#475569;font-size:clamp(15px,2.4vh,26px);font-weight:600}
+#tv .btn{background:#e2e8f0;color:#0f172a;box-shadow:none}
+#tv .btn:hover{background:#cbd5e1}
+#tv .counter{font-size:clamp(20px,3.6vh,42px);font-weight:800;font-variant-numeric:tabular-nums}
 #tv .stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
 #tv .room{width:min(100%,calc((100vh - 18vh) * var(--aspect,1.5)));max-height:100%}
-#tv .room .deskbar{background:#26324d;color:#aab8d6;font-size:clamp(12px,2vh,22px)}
-#tv .room .side.win{background:linear-gradient(180deg,#244a78,#1b3a60);color:#9cc7ff}
-#tv .room .side.hall{background:#1a2234;color:#6f7f9d}
-#tv .seat{background:#18203a;border-color:#2b3658;color:#f2f5fa;border-radius:12%}
-#tv .seat.off{background:transparent;border-color:#26304c;color:#35405e}
-#tv .seat .nm{font-size:max(12px,calc(100cqw / var(--n) * .3));font-weight:800}
-#tv .seat.filled.bet{background:linear-gradient(160deg,#3a2d00,#7a5a00);border-color:var(--gold);box-shadow:0 0 22px rgba(255,179,0,.35)}
-#tv .seat.filled.random{background:linear-gradient(160deg,#10305f,#1f5fb8);border-color:#5aa0ff}
-#tv .seat.filled.nolabel{background:#1f2a4a;border-color:#4a5b8a}
-#tv .seat.swap{box-shadow:0 0 0 3px #ff7ad9}
-#tv .seat .tag{font-size:max(10px,calc(100cqw / var(--n) * .24))}
-#tv .legend{display:flex;gap:18px;justify-content:center;color:#9fb0cc;font-size:clamp(12px,2vh,20px)}
-#tv .counter{font-size:clamp(18px,3.4vh,40px);font-weight:800;font-variant-numeric:tabular-nums}
-.confetti{position:fixed;top:-20px;font-size:26px;z-index:90;pointer-events:none;animation:fall linear forwards}
+#tv .room .deskbar{background:#cbd5e1;color:#1e293b;font-size:clamp(14px,2.2vh,24px)}
+#tv .room .side{font-size:clamp(13px,2.1vh,24px);font-weight:800}
+#tv .room .side.win{background:#bfdbfe;color:#1e3a8a}
+#tv .room .side.hall{background:#e2e8f0;color:#334155}
+#tv .seat{background:#fff;border:2px solid #94a3b8;color:#0f172a;border-radius:10%}
+#tv .seat.off{background:transparent;border:2px dashed #cbd5e1;color:#cbd5e1}
+#tv .seat .nm{font-size:max(15px,calc(100cqw / var(--n) * .3));font-weight:800;color:inherit}
+#tv .seat .nm.long{font-size:max(13px,calc(100cqw / var(--n) * .23))}
+#tv .seat .tag{font-size:max(11px,calc(100cqw / var(--n) * .16));background:#7c2d12;color:#fff}
+#tv .seat.filled.bet{background:#fde68a;border-color:#b45309;color:#1c1100}
+#tv .seat.filled.random{background:#dbeafe;border-color:#1d4ed8;color:#0b1b4a}
+#tv .seat.filled.nolabel{background:#e2e8f0;border-color:#64748b}
+#tv .seat.swap{box-shadow:0 0 0 3px #db2777}
+#tv .legend{display:flex;gap:26px;justify-content:center;color:#334155;font-size:clamp(14px,2.3vh,26px);font-weight:700}
+#tv .legend .lg::before{content:"";display:inline-block;width:.95em;height:.95em;border-radius:3px;margin-right:.5em;vertical-align:-.1em;background:var(--c);border:2px solid var(--b)}
+#tv .legend .lg.bet{--c:#fde68a;--b:#b45309}
+#tv .legend .lg.random{--c:#dbeafe;--b:#1d4ed8}
+#tv.dark{background:#0b1020;color:#f8fafc}
+#tv.dark .tvtitle{color:#fff}
+#tv.dark .tvsub{color:#cbd5e1}
+#tv.dark .btn{background:#1e293b;color:#fff}
+#tv.dark .btn:hover{background:#334155}
+#tv.dark .room .deskbar{background:#334155;color:#e2e8f0}
+#tv.dark .room .side.win{background:#1e40af;color:#dbeafe}
+#tv.dark .room .side.hall{background:#1e293b;color:#cbd5e1}
+#tv.dark .seat{background:#1e293b;border-color:#64748b;color:#f8fafc}
+#tv.dark .seat.off{background:transparent;border-color:#334155;color:#334155}
+#tv.dark .seat.filled.bet{background:#fbbf24;border-color:#fde68a;color:#1c1100}
+#tv.dark .seat.filled.random{background:#60a5fa;border-color:#bfdbfe;color:#06122e}
+#tv.dark .seat.filled.nolabel{background:#475569;border-color:#94a3b8;color:#fff}
+#tv.dark .legend{color:#cbd5e1}
+#tv.dark .legend .lg.bet{--c:#fbbf24;--b:#fde68a}
+#tv.dark .legend .lg.random{--c:#60a5fa;--b:#bfdbfe}
+.confetti{position:fixed;top:-20px;z-index:90;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.9}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}
 </style>
@@ -408,7 +431,7 @@ function selfTest({ runs = 1000, log = () => {}, seed0 = 20240301 } = {}) {
   const seats = activeSeatIds(cfg);
   const students = Array.from({ length: 31 }, (_, i) => String(30101 + i));
   const out = { ok: true, checks: [] };
-  const rec = (name, pass, detail) => { out.checks.push({ name, pass, detail }); if (!pass) out.ok = false; log(`${pass ? '✅' : '❌'} ${name} — ${detail}`); };
+  const rec = (name, pass, detail) => { out.checks.push({ name, pass, detail }); if (!pass) out.ok = false; log(`${pass ? '[통과]' : '[실패]'} ${name} — ${detail}`); };
   log(`자체 검증 시작: ${runs}회 × 시나리오, 학생 ${students.length}명 / 활성 자리 ${seats.length}개`);
 
   // (a) 경쟁자 없는 단독 베팅은 항상 당첨
@@ -475,7 +498,7 @@ function selfTest({ runs = 1000, log = () => {}, seed0 = 20240301 } = {}) {
     const v = validateBets(bad, students, seats, 100);
     rec('무효 베팅 처리(음수·초과·비활성·미등록)', v.invalid.length === 4 && Object.keys(v.valid).length === 1, `무효 ${v.invalid.length}건: ${v.invalid.map((x) => x.sid + ':' + x.reason).join(', ')}`);
   }
-  log(out.ok ? '🎉 모든 검증 통과' : '⚠️ 실패한 검증이 있습니다');
+  log(out.ok ? '모든 검증 통과' : '실패한 검증이 있습니다');
   return out;
 }
 /* </draw-core> */
@@ -800,7 +823,7 @@ function buildGrid(cfg, { onSeat } = {}) {
     el._num = el.firstChild; el._nm = el.children[1]; el._id = id; el._off = off;
     els.set(id, el); grid.append(el);
   }
-  const winLeft = !cfg.mirror;
+  const winLeft = !!cfg.mirror;
   const side = (k) => h('div', { class: 'side ' + k }, k === 'win' ? '창문' : '복도');
   const mid = h('div', { class: 'mid' }, side(winLeft ? 'win' : 'hall'), grid, side(winLeft ? 'hall' : 'win'));
   const desk = h('div', { class: 'deskbar' }, '교탁');
@@ -818,7 +841,7 @@ function buildGrid(cfg, { onSeat } = {}) {
       }
       if ('name' in st && st.name !== prev.name) { // 이름 표시 모드(결과 화면)
         const has = st.name != null;
-        e._nm.textContent = has ? st.name : ''; e._nm.classList.toggle('hidden', !has); e._num.classList.toggle('hidden', has); prev.name = st.name;
+        e._nm.textContent = has ? st.name : ''; e._nm.classList.toggle('long', has && String(st.name).length >= 4); e._nm.classList.toggle('hidden', !has); e._num.classList.toggle('hidden', has); prev.name = st.name;
       }
       if ('badge' in st && (st.badge !== prev.badge || st.draft !== prev.draft)) {
         e.querySelector('.badge')?.remove();
@@ -832,6 +855,8 @@ function buildGrid(cfg, { onSeat } = {}) {
     },
   };
 }
+
+const typeTag = (t) => (t === 'bet' ? '당첨' : null); // 베팅으로 배정된 자리만 작은 글자표를 붙인다(무작위 배치는 표시 없음)
 
 // 지난 회차 자리 카드(학생·교사 공용). history: { 회차번호: { round, layout, assign, types } }
 function makeHistoryCard() {
@@ -851,7 +876,7 @@ function makeHistoryCard() {
     const grid = buildGrid(e.layout), bySeat = {};
     for (const [sid, seat] of Object.entries(e.assign || {})) bySeat[seat] = sid;
     const ty = e.types || {};
-    for (const id of activeSeatIds(e.layout)) { const sid = bySeat[id]; grid.set(id, { name: sid ? (roster?.[sid]?.name || sid) : '', tag: sid ? (ty[sid] === 'bet' ? '🎯' : ty[sid] === 'random' ? '🎲' : null) : null, heat: 0, cls: { me: !!me && sid === me, empty: !sid, static: true } }); }
+    for (const id of activeSeatIds(e.layout)) { const sid = bySeat[id]; grid.set(id, { name: sid ? (roster?.[sid]?.name || sid) : '', tag: sid ? typeTag(ty[sid]) : null, heat: 0, cls: { me: !!me && sid === me, empty: !sid, static: true } }); }
     put(gridHost, grid.el);
     meta.textContent = `${sel}회차 최종 배치 · ${Object.keys(e.assign || {}).length}명` + (me && e.assign?.[me] ? ` · 내 자리 ${seatLabel(e.assign[me])}` : '');
   }
@@ -882,10 +907,11 @@ const Snd = {
 };
 
 function confetti(n = 46) {
-  const em = ['🎉', '✨', '🎊', '⭐', '🪙'];
+  const colors = ['#3182f6', '#f59f00', '#00a37a', '#f04452', '#8b5cf6'];
   for (let i = 0; i < n; i++) {
-    const s = h('span', { class: 'confetti', style: { left: Math.random() * 100 + 'vw', animationDuration: 2.2 + Math.random() * 2.2 + 's', animationDelay: Math.random() * 0.8 + 's', fontSize: 16 + Math.random() * 22 + 'px' } }, em[i % em.length]);
-    document.body.append(s); setTimeout(() => s.remove(), 6000);
+    const w = 6 + Math.random() * 6, round = Math.random() > 0.6;
+    const piece = h('span', { class: 'confetti', style: { left: Math.random() * 100 + 'vw', width: w + 'px', height: (round ? w : w * 1.8) + 'px', borderRadius: round ? '50%' : '2px', background: colors[i % colors.length], animationDuration: 2.2 + Math.random() * 2.2 + 's', animationDelay: Math.random() * 0.8 + 's' } });
+    document.body.append(piece); setTimeout(() => piece.remove(), 6000);
   }
 }
 
@@ -953,7 +979,7 @@ function showLogin(opts = {}) {
         h('button', { class: 'btn primary big block', type: 'submit' }, '로그인'));
     }
     put(root, 
-      h('div', { class: 'topbar' }, h('h1', null, '🪙 자리 배치 베팅'), IS_DEMO && h('span', { class: 'demo-flag' }, '데모 모드'), h('span', { class: 'grow' })),
+      h('div', { class: 'topbar' }, h('h1', null, '자리 배치 베팅'), IS_DEMO && h('span', { class: 'demo-flag' }, '데모 모드'), h('span', { class: 'grow' })),
       h('div', { class: 'card hero' }, h('h2', null, tab === 'student' ? '내 자리는 내가 정해요' : '교사 로그인'),
         h('p', { class: 'muted', style: { marginBottom: '16px' } }, tab === 'student' ? '토큰 100개를 원하는 자리에 걸어 보세요.' : '교사 계정으로 방을 관리하고 추첨을 진행해요.'),
         h('div', { class: 'tabs' }, h('button', { class: tab === 'student' ? 'on' : '', onclick: () => { tab = 'student'; draw(); } }, '학생 입장'), h('button', { class: tab === 'teacher' ? 'on' : '', onclick: () => { tab = 'teacher'; draw(); } }, '교사')),
@@ -1094,7 +1120,7 @@ function buildStudentView(St, sess, leave) {
       setup: ['info', '선생님이 베팅을 시작하면 자리를 고를 수 있어요.'],
       betting: ['ok', confirmed && !dirty ? '확정했어요. 마감 전까지 수정하고 다시 확정할 수 있어요.' : '자리를 눌러 토큰을 걸고, 마지막에 [베팅 확정하기]를 눌러요.'],
       locked: ['', '베팅이 마감되었어요. 선생님이 곧 추첨을 시작해요!'],
-      drawing: ['info', '🎰 추첨 중이에요! 교실 TV를 봐 주세요.'],
+      drawing: ['info', '추첨 중이에요. 교실 TV를 봐 주세요.'],
       done: ['ok', '추첨이 끝났어요. 내 자리를 확인해 보세요.'],
     }[ph] || ['', ''];
     put(noteHost, h('div', { class: 'notice ' + notes[0], style: { marginTop: '12px' } }, notes[1]));
@@ -1106,12 +1132,12 @@ function buildStudentView(St, sess, leave) {
       const typeOf = {}; for (const o of Object.values(result.order || {})) typeOf[o.sid] = o.type;
       for (const id of activeSeatIds(cfg)) {
         const s = bySeat[id], nm = s ? (St.roster[s]?.name || s) : null;
-        grid.set(id, { name: nm, badge: null, tag: s ? (typeOf[s] === 'bet' ? '🎯' : '🎲') : null, heat: 0, cls: { me: s === sid, empty: !s, static: true } });
+        grid.set(id, { name: nm, badge: null, tag: s ? typeTag(typeOf[s]) : null, heat: 0, cls: { me: s === sid, empty: !s, static: true } });
       }
       const mySeat = result.assign[sid];
-      seatTitle.textContent = '최종 배치표'; seatHint.textContent = '🎯 베팅으로 당첨 · 🎲 무작위 배치';
+      seatTitle.textContent = '최종 배치표'; seatHint.textContent = '"당첨" 표시는 베팅으로 배정된 자리, 표시가 없는 자리는 무작위 배치예요.';
       put(meCard, h('div', { class: 'card hero center' }, mySeat ? [h('p', { class: 'muted' }, '내 자리는'), h('h2', { style: { fontSize: '34px', margin: '6px 0' } }, seatLabel(mySeat)),
-        h('span', { class: 'chip ' + (typeOf[sid] === 'bet' ? 'warn' : 'blue') }, typeOf[sid] === 'bet' ? '🎯 베팅 당첨!' : '🎲 무작위 배치')] : [h('h2', null, '배정된 자리가 없어요'), h('p', { class: 'muted' }, '선생님께 문의해 주세요.')]));
+        h('span', { class: 'chip ' + (typeOf[sid] === 'bet' ? 'warn' : 'blue') }, typeOf[sid] === 'bet' ? '베팅 당첨' : '무작위 배치')] : [h('h2', null, '배정된 자리가 없어요'), h('p', { class: 'muted' }, '선생님께 문의해 주세요.')]));
       if (!view_confettiDone && mySeat) { view_confettiDone = true; confetti(typeOf[sid] === 'bet' ? 60 : 26); }
     } else {
       put(meCard, );
@@ -1136,21 +1162,21 @@ function buildStudentView(St, sess, leave) {
         ph === 'betting' && h('button', { class: 'btn sm ghost', onclick: () => setSeat(id, 0) }, '회수')))) : h('p', { class: 'muted small' }, '아직 건 토큰이 없어요.'));
     histCard.update(St.history, St.roster, sid);
     confirmBtn.disabled = ph !== 'betting' || saving || !dirty;
-    confirmBtn.textContent = saving ? '저장 중…' : (confirmed && !dirty ? '확정 완료 ✓' : (confirmed ? '수정한 베팅 다시 확정하기' : '베팅 확정하기'));
+    confirmBtn.textContent = saving ? '저장 중…' : (confirmed && !dirty ? '확정 완료' : (confirmed ? '수정한 베팅 다시 확정하기' : '베팅 확정하기'));
     dock.classList.toggle('hidden', ph === 'done' || ph === 'setup');
     tokenCard.classList.toggle('hidden', ph === 'done' && !!result);
   }
   let view_confettiDone = false;
 
   const el = h('div', null,
-    h('div', { class: 'topbar' }, h('h1', null, '🪙 자리 베팅'), roundChip, h('span', { class: 'grow' }), h('span', { class: 'small muted' }, sess.name),
+    h('div', { class: 'topbar' }, h('h1', null, '자리 베팅'), roundChip, h('span', { class: 'grow' }), h('span', { class: 'small muted' }, sess.name),
       h('button', { class: 'btn sm ghost', onclick: async () => { if (await confirmBox('나가기', '나가도 베팅은 그대로예요. 같은 학번으로 다시 입장할 수 있어요.', '나가기')) leave(); } }, '나가기')),
     tokenCard = h('div', { class: 'card' }, h('div', { class: 'tokenhead' }, h('div', null, h('p', { class: 'small muted' }, '남은 토큰'), h('div', { class: 'big' }, leftEl, budgetEl)), chipHost), h('div', { style: { height: '12px' } }), h('div', { class: 'progress' }, bar), noteHost),
     meCard,
     h('div', { class: 'card' }, seatTitle, seatHint, gridHost),
     histCard.el,
     h('div', { class: 'card' }, h('h2', null, '내 베팅'), listHost),
-    h('details', { class: 'card', style: { background: '#fff' } }, h('summary', null, '🎲 추첨은 이렇게 진행돼요'),
+    h('details', { class: 'card', style: { background: '#fff' } }, h('summary', null, '추첨은 이렇게 진행돼요'),
       h('p', null, '토큰 1개 = 추첨권 1장이에요. 통에서 한 장씩 뽑아 그 주인을 그 자리에 앉히고, 앉은 학생의 나머지 추첨권과 그 자리의 다른 추첨권은 버려요. 이렇게 추첨권이 다 없어질 때까지 반복하고, 남은 학생은 빈자리에 무작위로 배치돼요.'),
       h('p', null, '그래서 토큰을 많이 걸수록 유리하지만, 인기 있는 자리에는 경쟁자도 많아요. 여러 자리에 나눠 걸면 어느 한 곳이라도 당첨될 가능성이 커져요.')),
     dock);
@@ -1168,6 +1194,7 @@ async function teacherLogin(email, pw) {
   ls.set('lastRole', 'teacher'); enterTeacher();
 }
 
+const GEAR_SVG = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'; // 단색 톱니바퀴 아이콘(Feather, MIT)
 const askText = (title, text, expected) => new Promise((resolve) => {
   const input = h('input', { class: 'input', placeholder: expected, autofocus: true });
   modal({ title, body: h('div', { class: 'col' }, h('p', { style: { color: 'var(--ink2)', whiteSpace: 'pre-line' } }, text), input), actions: [{ label: '취소', value: false }, { label: '삭제', value: true, danger: true }] })
@@ -1188,9 +1215,9 @@ function enterTeacher() {
   // ── 상단바
   const roomSel = h('select', { class: 'input', style: { width: 'auto', padding: '8px 12px', fontWeight: 700 }, onchange: (e) => selectRoom(e.target.value) });
   const phaseHost = h('span');
-  const topbar = h('div', { class: 'topbar' }, h('h1', null, '🧑‍🏫 교사 모드'), IS_DEMO && h('span', { class: 'demo-flag' }, '데모'), roomSel, phaseHost, h('span', { class: 'grow' }),
-    h('button', { class: 'btn sm', onclick: () => openTV({ autoplay: false }) }, '📺 TV'),
-    h('button', { class: 'btn sm drawer-btn', title: '설정', onclick: () => openSettings() }, '⚙️'),
+  const topbar = h('div', { class: 'topbar' }, h('h1', null, '교사 모드'), IS_DEMO && h('span', { class: 'demo-flag' }, '데모'), roomSel, phaseHost, h('span', { class: 'grow' }),
+    h('button', { class: 'btn sm', onclick: () => openTV({ autoplay: false }) }, 'TV 화면'),
+    h('button', { class: 'btn sm icon-btn', title: '설정', 'aria-label': '설정', onclick: () => openSettings(), html: GEAR_SVG }),
     h('button', { class: 'btn sm ghost', onclick: async () => { teardown(); await be.signOut('teacher'); ls.del('lastRole'); showLogin({ tab: 'teacher' }); } }, '로그아웃'));
   const main = h('div');
   mount(h('div', null, topbar, main));
@@ -1234,7 +1261,7 @@ function enterTeacher() {
   // ── 단계 제어
   async function startBetting() {
     const { cfg, rosterSids, active, D } = derive();
-    if (!rosterSids.length) return toast('먼저 명단을 등록해 주세요 (⚙️ → 명단)', 'bad');
+    if (!rosterSids.length) return toast('먼저 명단을 등록해 주세요 (설정 → 명단)', 'bad');
     if (active.length !== rosterSids.length && !(await confirmBox('인원과 자리 수가 달라요', `명단 ${rosterSids.length}명 / 활성 자리 ${active.length}개입니다.\n${active.length < rosterSids.length ? '자리가 모자라 일부 학생은 배정되지 않아요.' : '남는 자리는 빈자리로 남아요.'}\n그래도 시작할까요?`, '시작'))) return;
     await call({ [base() + 'state/phase']: 'betting', [base() + 'config/seats']: seatsMap(cfg) });
     toast('베팅을 시작했어요', 'ok');
@@ -1254,7 +1281,7 @@ function enterTeacher() {
   async function startDraw() {
     const cur = derive();
     if (cur.D.result) return toast('이미 추첨 결과가 있어요', 'bad');
-    if (cur.phase === 'locked' && !(await confirmBox('🎰 대혼돈 추첨을 시작할까요?', '추첨은 이 기기에서 한 번만 계산되고, 결과는 저장돼요.\nTV를 전체화면으로 열고 시작하는 걸 추천해요.', '추첨 시작'))) return;
+    if (cur.phase === 'locked' && !(await confirmBox('대혼돈 추첨을 시작할까요?', '추첨은 이 기기에서 한 번만 계산되고, 결과는 저장돼요.\nTV를 전체화면으로 열고 시작하는 걸 추천해요.', '추첨 시작'))) return;
     if (cur.phase === 'locked') await call({ [base() + 'state/phase']: 'drawing' });
     const D = (await be.get('teacher', base().slice(0, -1))) || {};
     const rosterSids = Object.keys(D.roster || {}).sort(), cfg = D.config, active = activeSeatIds(cfg), B = cfg.budget || 100;
@@ -1295,7 +1322,7 @@ function enterTeacher() {
     const before = findViolations(assign, forb, D.config), after = findViolations(next, forb, D.config);
     const added = after.filter((v) => !before.some((b) => b.a === v.a && b.b === v.b));
     const nm = (s) => D.roster[s]?.name || s;
-    if (added.length && !(await confirmBox('⚠️ 근접 금지 위반', `이 교환으로 근접 금지 쌍이 붙어 앉게 돼요:\n${added.map((v) => `${nm(v.a)} – ${nm(v.b)}`).join('\n')}\n\n그래도 교환할까요?`, '강행', true))) return;
+    if (added.length && !(await confirmBox('근접 금지 위반', `이 교환으로 근접 금지 쌍이 붙어 앉게 돼요:\n${added.map((v) => `${nm(v.a)} – ${nm(v.b)}`).join('\n')}\n\n그래도 교환할까요?`, '강행', true))) return;
     const n = asList(D.result.swaps).length;
     const upd = { [base() + `result/swaps/${n}`]: clean({ a: sa, b: sb, seatA, seatB, forced: added.length > 0 || undefined, at: SV.ts() }) };
     if (sa) upd[base() + `result/assign/${sa}`] = seatB; if (sb) upd[base() + `result/assign/${sb}`] = seatA;
@@ -1314,7 +1341,7 @@ function enterTeacher() {
         h('button', { class: 'btn primary', onclick: () => openSettings('rooms') }, '첫 방 만들기')));
     }
     if (!T.D) return put(main, bootCard('방 정보를 불러오는 중…'));
-    if (!T.D.config) return put(main, h('div', { class: 'card' }, h('p', null, '이 방의 설정이 비어 있어요. ⚙️에서 자리 구조를 저장해 주세요.')));
+    if (!T.D.config) return put(main, h('div', { class: 'card' }, h('p', null, '이 방의 설정이 비어 있어요. 설정(톱니바퀴)에서 자리 구조를 저장해 주세요.')));
     if (main.firstChild !== dash) put(main, dash);
     const { D, cfg, rosterSids, active, V, totals, phase, round, forb, B } = derive();
     put(phaseHost, phaseChip(phase), h('span', { class: 'chip', style: { marginLeft: '6px' } }, round + '회차'));
@@ -1324,19 +1351,19 @@ function enterTeacher() {
     const steps = h('div', { class: 'phases' }, PHASES.map(([k, l], i) => h('div', { class: 'p' + (k === phase ? ' on' : (PHASES.findIndex((x) => x[0] === phase) > i ? ' past' : '')) }, l)));
     const B_ = (label, fn, cls = 'primary') => h('button', { class: 'btn ' + cls, onclick: guard(fn) }, label);
     const acts = [];
-    if (phase === 'setup') acts.push(B_('▶ 베팅 시작', startBetting));
-    if (phase === 'betting') acts.push(B_('⏹ 베팅 마감', lockBetting, 'primary'));
-    if (phase === 'locked') acts.push(B_('🎰 대혼돈 추첨 시작', startDraw, 'primary big'), B_('베팅 다시 열기', reopenBetting, 'ghost'));
-    if (phase === 'drawing') acts.push(hasResult ? [B_('📺 TV 연출 보기', async () => openTV({ autoplay: true })), B_('✅ 결과 공개', revealResult, 'good')] : B_('🎰 추첨 다시 시도 (결과 미저장)', startDraw));
-    if (phase === 'done') acts.push(B_('📺 TV로 보기', async () => openTV({ autoplay: false })), B_(T.swapMode ? '✋ 수정 모드 끄기' : '🔀 자리 수정 모드', async () => { T.swapMode = !T.swapMode; T.swapFirst = null; render(); }, T.swapMode ? 'good' : ''), B_('새 회차 시작', newRound, 'danger'));
+    if (phase === 'setup') acts.push(B_('베팅 시작', startBetting));
+    if (phase === 'betting') acts.push(B_('베팅 마감', lockBetting, 'primary'));
+    if (phase === 'locked') acts.push(B_('대혼돈 추첨 시작', startDraw, 'primary big'), B_('베팅 다시 열기', reopenBetting, 'ghost'));
+    if (phase === 'drawing') acts.push(hasResult ? [B_('TV 연출 보기', async () => openTV({ autoplay: true })), B_('결과 공개', revealResult, 'good')] : B_('추첨 다시 시도 (결과 미저장)', startDraw));
+    if (phase === 'done') acts.push(B_('TV로 보기', async () => openTV({ autoplay: false })), B_(T.swapMode ? '수정 모드 끄기' : '자리 수정 모드', async () => { T.swapMode = !T.swapMode; T.swapFirst = null; render(); }, T.swapMode ? 'good' : ''), B_('새 회차 시작', newRound, 'danger'));
     if (phase !== 'done') acts.push(B_('새 회차(초기화)', newRound, 'ghost'));
     const warn = [];
-    if (!rosterSids.length) warn.push('명단이 비어 있어요. ⚙️ → 명단에서 CSV를 올려 주세요.');
+    if (!rosterSids.length) warn.push('명단이 비어 있어요. 설정 → 명단에서 CSV를 올려 주세요.');
     if (rosterSids.length && active.length !== rosterSids.length) warn.push(`명단 ${rosterSids.length}명 ≠ 활성 자리 ${active.length}개`);
     const mismatch = phase === 'betting' && [...new Set([...Object.keys(totals), ...Object.keys(D.totals || {})])].some((k) => (totals[k] || 0) !== ((D.totals || {})[k] || 0));
     put(phaseCard, h('h2', null, '진행'), steps, h('div', { style: { height: '12px' } }),
       h('div', { class: 'row wrap' }, acts),
-      warn.map((w) => h('div', { class: 'notice', style: { marginTop: '10px' } }, '⚠️ ' + w)),
+      warn.map((w) => h('div', { class: 'notice', style: { marginTop: '10px' } }, w)),
       mismatch && h('p', { class: 'tiny muted', style: { marginTop: '8px' } }, '학생 화면 합계가 원본 베팅과 달라 자동으로 바로잡는 중이에요…'),
       phase === 'betting' && h('p', { class: 'tiny muted', style: { marginTop: '8px' } }, '마감하면 원본 베팅으로 합계를 다시 계산해요. 합계는 표시용이고, 추첨은 항상 원본 베팅을 검증해서 계산해요.'));
 
@@ -1347,8 +1374,8 @@ function enterTeacher() {
     if (hasResult && (phase === 'done' || phase === 'drawing')) {
       const bySeat = {}; for (const [s, seat] of Object.entries(D.result.assign)) bySeat[seat] = s;
       const typeOf = {}; for (const o of asList(D.result.order)) typeOf[o.sid] = o.type;
-      for (const id of active) { const s = bySeat[id]; gridObj.set(id, { name: s ? (D.roster[s]?.name || s) : '', tag: s ? (typeOf[s] === 'bet' ? '🎯' : '🎲') : null, badge: null, heat: 0, cls: { empty: !s, sel: T.swapFirst === id } }); }
-      gridTitle.textContent = T.swapMode ? '🔀 두 자리를 차례로 눌러 교환' : '배치 결과';
+      for (const id of active) { const s = bySeat[id]; gridObj.set(id, { name: s ? (D.roster[s]?.name || s) : '', tag: s ? typeTag(typeOf[s]) : null, badge: null, heat: 0, cls: { empty: !s, sel: T.swapFirst === id } }); }
+      gridTitle.textContent = T.swapMode ? '두 자리를 차례로 눌러 교환' : '배치 결과';
     } else {
       for (const id of active) gridObj.set(id, { num: totals[id] || 0, name: null, badge: null, heat: (totals[id] || 0) / maxT, cls: { sel: T.selSeat === id } });
       gridTitle.textContent = phase === 'betting' || phase === 'locked' ? '자리별 합계 (자리를 누르면 누가 걸었는지 보여요)' : '자리 현황';
@@ -1371,7 +1398,7 @@ function enterTeacher() {
       h('div', { class: 'scroll' }, h('table', null, h('thead', null, h('tr', null, ['학번', '이름', '입장', '제출', '토큰', ''].map((x) => h('th', null, x)))),
         h('tbody', null, rosterSids.map((sid) => {
           const bound = !!D.bindings?.[sid], b = V.valid[sid], inv = invalidMap[sid];
-          return h('tr', null, h('td', null, sid), h('td', null, D.roster[sid].name), h('td', null, bound ? '🟢' : '⚪'),
+          return h('tr', null, h('td', null, sid), h('td', null, D.roster[sid].name), h('td', null, bound ? h('span', { class: 'chip green' }, '입장') : h('span', { class: 'muted' }, '–')),
             h('td', null, inv ? h('span', { class: 'chip red', title: inv }, '무효') : (V.confirmed.includes(sid) ? h('span', { class: 'chip green' }, 'O') : h('span', { class: 'chip' }, 'X'))),
             h('td', null, b ? sumVals(b) : '–'), h('td', null, bound && h('button', { class: 'btn sm ghost', onclick: guard(() => resetBinding(sid)) }, '초기화')));
         })))));
@@ -1382,10 +1409,10 @@ function enterTeacher() {
     put(auditHost, ...(A || swaps.length ? [h('div', { class: 'card' }, h('h2', null, '추첨 기록 (교사 전용)'),
       A && h('div', { class: 'kv' }, h('span', { class: 'muted' }, '시드'), h('code', null, String(A.seed)), h('span', { class: 'muted' }, '베팅 당첨'), `${D.result?.betCount || 0}명`, h('span', { class: 'muted' }, '무작위 배치'), `${Object.keys(D.result?.assign || {}).length - (D.result?.betCount || 0)}명`,
         h('span', { class: 'muted' }, '무효 베팅'), `${asList(A.invalid).length}건`, h('span', { class: 'muted' }, '미제출'), `${asList(A.notSubmitted).length}명`),
-      A && asList(A.violations).length ? h('div', { class: 'notice bad', style: { marginTop: '10px' } }, '근접 금지 위반: ' + asList(A.violations).map((v) => `${D.roster[v.a]?.name || v.a}–${D.roster[v.b]?.name || v.b}${v.unavoidable ? '(둘 다 베팅 당첨)' : ''}`).join(', ') + ' → 🔀 수정 모드에서 교환할 수 있어요.') : (A && forb.length ? h('div', { class: 'notice ok', style: { marginTop: '10px' } }, `근접 금지 ${forb.length}쌍 모두 만족`) : null),
+      A && asList(A.violations).length ? h('div', { class: 'notice bad', style: { marginTop: '10px' } }, '근접 금지 위반: ' + asList(A.violations).map((v) => `${D.roster[v.a]?.name || v.a}–${D.roster[v.b]?.name || v.b}${v.unavoidable ? '(둘 다 베팅 당첨)' : ''}`).join(', ') + ' → 수정 모드에서 교환할 수 있어요.') : (A && forb.length ? h('div', { class: 'notice ok', style: { marginTop: '10px' } }, `근접 금지 ${forb.length}쌍 모두 만족`) : null),
       A && h('details', null, h('summary', null, '단계별 추첨 로그'), h('div', { class: 'scroll', style: { marginTop: '8px' } }, h('table', null, h('thead', null, h('tr', null, ['#', '학생', '자리', '걸린 토큰', '당시 전체 추첨권'].map((x) => h('th', null, x)))),
         h('tbody', null, asList(A.steps).map((s) => h('tr', null, h('td', null, s.i), h('td', null, D.roster[s.sid]?.name || s.sid), h('td', null, seatLabel(s.seat)), h('td', null, s.w), h('td', null, `${s.total} (확률 ${(s.w / s.total * 100).toFixed(1)}%)`))))))),
-      swaps.length ? h('details', { open: true }, h('summary', null, `수동 교환 내역 ${swaps.length}건`), swaps.map((s) => h('p', { class: 'small' }, `${s.a ? D.roster[s.a]?.name : '빈자리'} (${seatLabel(s.seatA)}) ↔ ${s.b ? D.roster[s.b]?.name : '빈자리'} (${seatLabel(s.seatB)})${s.forced ? ' ⚠️강행' : ''}`))) : null)] : []));
+      swaps.length ? h('details', { open: true }, h('summary', null, `수동 교환 내역 ${swaps.length}건`), swaps.map((s) => h('p', { class: 'small' }, `${s.a ? D.roster[s.a]?.name : '빈자리'} (${seatLabel(s.seatA)}) ↔ ${s.b ? D.roster[s.b]?.name : '빈자리'} (${seatLabel(s.seatB)})${s.forced ? ' (강행)' : ''}`))) : null)] : []));
     historyCard.update(D.history, D.roster, null);
     T.tvCtl && T.tvCtl.refresh();
   }
@@ -1408,14 +1435,16 @@ function enterTeacher() {
     let token = 0, shownFinal = false, played = false, pendingPlay = !!autoplay;
     const cfg = T.D.config, root = $('#tvroot'), g = buildGrid(cfg, {});
     const counter = h('span', { class: 'counter' }), title = h('span', { class: 'tvtitle' }), sub = h('span', { class: 'tvsub' });
-    const muteBtn = h('button', { class: 'btn sm', onclick: () => { Snd.setMuted(!Snd.muted); muteBtn.textContent = Snd.muted ? '🔇 음소거' : '🔊 소리 켜짐'; if (!Snd.muted) Snd.thunk(0, true); } }, Snd.muted ? '🔇 음소거' : '🔊 소리 켜짐');
-    const legend = h('div', { class: 'legend hidden' }, h('span', null, '🎯 베팅 당첨'), h('span', null, '🎲 무작위 배치'));
+    const muteBtn = h('button', { class: 'btn sm', onclick: () => { Snd.setMuted(!Snd.muted); muteBtn.textContent = Snd.muted ? '소리 꺼짐' : '소리 켜짐'; if (!Snd.muted) Snd.thunk(0, true); } }, Snd.muted ? '소리 꺼짐' : '소리 켜짐');
+    const legend = h('div', { class: 'legend hidden' }, h('span', { class: 'lg bet' }, '베팅 당첨'), h('span', { class: 'lg random' }, '무작위 배치'));
     const close = () => { token++; document.fullscreenElement && document.exitFullscreen?.().catch(() => {}); put(root, ); T.tvCtl = null; scheduleRender(); };
     const replay = () => play(true);
+    const darkBtn = h('button', { class: 'btn sm', onclick: () => { const d = !tv.classList.contains('dark'); tv.classList.toggle('dark', d); ls.set('tvDark', d); darkBtn.textContent = d ? '밝게 보기' : '어둡게 보기'; } }, ls.get('tvDark', false) ? '밝게 보기' : '어둡게 보기');
     const tv = h('div', { id: 'tv' }, h('div', { class: 'tvtop' }, title, sub, h('span', { class: 'grow' }), counter,
-      muteBtn, h('button', { class: 'btn sm', onclick: replay }, '▶ 다시 보기'),
-      h('button', { class: 'btn sm', onclick: () => { document.fullscreenElement ? document.exitFullscreen() : tv.requestFullscreen?.().catch(() => toast('전체화면을 열 수 없어요')); } }, '⛶ 전체화면'),
-      h('button', { class: 'btn sm', onclick: close }, '✕ 닫기')), h('div', { class: 'stage' }, g.el), legend);
+      muteBtn, darkBtn, h('button', { class: 'btn sm', onclick: replay }, '다시 보기'),
+      h('button', { class: 'btn sm', onclick: () => { document.fullscreenElement ? document.exitFullscreen() : tv.requestFullscreen?.().catch(() => toast('전체화면을 열 수 없어요')); } }, '전체화면'),
+      h('button', { class: 'btn sm', onclick: close }, '닫기')), h('div', { class: 'stage' }, g.el), legend);
+    tv.classList.toggle('dark', !!ls.get('tvDark', false));
     tv.style.setProperty('--aspect', g.ratio.toFixed(3));
     put(root, tv);
     if (autoplay) tv.requestFullscreen?.().catch(() => {});
@@ -1426,7 +1455,7 @@ function enterTeacher() {
       title.textContent = `${T.code} · ${D.state?.round || 1}회차 자리 배치`;
       if (!res?.assign) { sub.textContent = phase === 'betting' ? '베팅 진행 중' : '아직 추첨 전이에요'; counter.textContent = ''; for (const id of active) g.set(id, { name: null, num: (D.totals || {})[id] || 0, heat: 0, cls: {} }); return; }
       const bySeat = {}; for (const [s, seat] of Object.entries(res.assign)) bySeat[seat] = s; const ty = typeMap(res);
-      for (const id of active) { const s = bySeat[id]; g.set(id, { name: s ? (roster[s]?.name || s) : '', tag: s ? (ty[s] === 'bet' ? '🎯' : '🎲') : null, heat: 0, cls: { filled: !!s, bet: ty[s] === 'bet', random: ty[s] === 'random', empty: !s, static: true } }); }
+      for (const id of active) { const s = bySeat[id]; g.set(id, { name: s ? (roster[s]?.name || s) : '', tag: s ? typeTag(ty[s]) : null, heat: 0, cls: { filled: !!s, bet: ty[s] === 'bet', random: ty[s] === 'random', empty: !s, static: true } }); }
       sub.textContent = phase === 'done' ? '최종 배치표' : '추첨 완료 · 결과 공개 대기'; legend.classList.remove('hidden'); counter.textContent = ''; shownFinal = true;
     }
     async function play(manual) {
@@ -1440,7 +1469,7 @@ function enterTeacher() {
       let i = 0;
       for (const o of order) {
         if (my !== token) return;
-        g.set(o.seat, { name: roster[o.sid]?.name || o.sid, tag: o.type === 'bet' ? '🎯' : '🎲', cls: { filled: true, bet: o.type === 'bet', random: o.type === 'random', static: true } });
+        g.set(o.seat, { name: roster[o.sid]?.name || o.sid, tag: typeTag(o.type), cls: { filled: true, bet: o.type === 'bet', random: o.type === 'random', static: true } });
         const el = g.els.get(o.seat); el.classList.remove('drop'); void el.offsetWidth; el.classList.add('drop');
         Snd.thunk(i++, o.type === 'bet'); counter.textContent = `${i} / ${order.length}`;
         if (o.type === 'random' && order[i - 2]?.type === 'bet') await sleep(450); // 베팅 당첨자 → 무작위 배치로 넘어가는 호흡
@@ -1461,7 +1490,7 @@ function enterTeacher() {
   // ── 설정 (방 · 자리 구조 · 명단 · 근접 금지 · 데이터)
   function openSettings(startTab = 'rooms') {
     let tab = startTab, retryT = 0; const body = h('div'), tabsEl = h('div', { class: 'tabs' });
-    const box = h('div', { class: 'box', style: { maxWidth: '760px' } }, h('div', { class: 'row' }, h('h3', { style: { margin: 0 } }, '⚙️ 설정'), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { m.remove(); scheduleRender(); } }, '닫기')), tabsEl, body);
+    const box = h('div', { class: 'box', style: { maxWidth: '760px' } }, h('div', { class: 'row' }, h('h3', { style: { margin: 0 } }, '설정'), h('span', { class: 'grow' }), h('button', { class: 'btn sm', onclick: () => { m.remove(); scheduleRender(); } }, '닫기')), tabsEl, body);
     const m = h('div', { class: 'modal', onclick: (e) => { if (e.target === m) { m.remove(); scheduleRender(); } } }, box);
     const TABS = [['rooms', '방'], ['layout', '자리 구조'], ['roster', '명단'], ['pairs', '근접 금지'], ['data', '데이터']];
     const go = (t) => { tab = t; put(tabsEl, ...TABS.map(([k, l]) => h('button', { class: k === tab ? 'on' : '', onclick: () => go(k) }, l))); put(body, ({ rooms: tRooms, layout: tLayout, roster: tRoster, pairs: tPairs, data: tData })[tab]());
@@ -1511,7 +1540,7 @@ function enterTeacher() {
       const redraw = () => {
         for (const k of Object.keys(c.disabled)) { const p = parseSeat(k); if (!p || p.r > c.rows || p.c > c.cols) delete c.disabled[k]; }
         const act = activeSeatIds(c).length;
-        put(info, h('div', { class: 'notice ' + (rosterN && act !== rosterN ? '' : 'ok') }, `활성 자리 ${act}개 · 명단 ${rosterN}명` + (rosterN && act !== rosterN ? ` — ⚠️ ${act < rosterN ? `${rosterN - act}자리 부족` : `${act - rosterN}자리 남음`} (자리를 눌러 ✕로 막거나 풀어 주세요)` : ' ✓')));
+        put(info, h('div', { class: 'notice ' + (rosterN && act !== rosterN ? '' : 'ok') }, `활성 자리 ${act}개 · 명단 ${rosterN}명` + (rosterN && act !== rosterN ? ` — ${act < rosterN ? `${rosterN - act}자리 부족` : `${act - rosterN}자리 남음`} (자리를 눌러 ✕로 막거나 풀어 주세요)` : ' (일치)')));
         const g = buildGrid(c, { onSeat: (id) => { if (lock) return; c.disabled[id] ? delete c.disabled[id] : (c.disabled[id] = true); redraw(); } });
         for (const id of allSeatIds(c)) if (!c.disabled[id]) g.set(id, { num: '', cls: {} }), g.els.get(id)._num.textContent = parseSeat(id).r + '-' + parseSeat(id).c;
         put(gridHost2, g.el);
@@ -1535,7 +1564,7 @@ function enterTeacher() {
       let rows = [], enc = '';
       const showPrev = () => {
         rows = parseRosterText(area.value); const bad = rows.filter((r) => r.problem);
-        put(prev, rows.length ? h('div', null, h('p', { class: 'small', style: { margin: '8px 0' } }, `미리보기 ${rows.length}명${enc ? ` · 인코딩 ${enc}` : ''}${bad.length ? ` · ⚠️ 문제 ${bad.length}건` : ' · 이상 없음 ✓'}`),
+        put(prev, rows.length ? h('div', null, h('p', { class: 'small', style: { margin: '8px 0' } }, `미리보기 ${rows.length}명${enc ? ` · 인코딩 ${enc}` : ''}${bad.length ? ` · 문제 ${bad.length}건` : ' · 이상 없음'}`),
           h('div', { class: 'scroll' }, h('table', null, h('tbody', null, rows.map((r) => h('tr', { style: r.problem ? { background: 'var(--bad-bg)' } : null }, h('td', null, r.sid), h('td', null, r.name), h('td', { class: 'small' }, r.problem || ''))))))) : null);
         saveBtn.disabled = lock || !rows.length || !!bad.length; saveBtn.textContent = `명단 저장 (${rows.length}명)`;
       };
@@ -1589,12 +1618,12 @@ function setupDemoBar() {
   let botRun = 0;
   const be = () => App.be;
   async function runBots() {
-    if (botRun) { botRun++; botBtn.textContent = '🤖 가상 학생 31명 베팅'; return toast('시뮬레이션을 멈췄어요'); }
+    if (botRun) { botRun++; botBtn.textContent = '가상 학생 31명 베팅'; return toast('시뮬레이션을 멈췄어요'); }
     const tree = be().raw.tree(), room = tree.rooms?.demo;
     if (!room?.config || !room.roster) return toast('데모 방이 없어요. 데모 초기화를 눌러 주세요', 'bad');
     if (room.state.phase === 'setup') { be().raw.apply([['rooms/demo/state/phase', 'betting'], ['rooms/demo/config/seats', seatsMap(room.config)]]); toast('베팅을 자동으로 시작했어요'); }
     else if (room.state.phase !== 'betting') return toast('베팅 중일 때만 시뮬레이션할 수 있어요 (교사 화면에서 새 회차/베팅 재개)', 'bad');
-    const me = ls.get('session')?.sid, run = ++botRun; botBtn.textContent = '⏹ 시뮬레이션 중지';
+    const me = ls.get('session')?.sid, run = ++botRun; botBtn.textContent = '시뮬레이션 중지';
     const cfg = room.config, active = activeSeatIds(cfg), sids = Object.keys(room.roster).sort().filter((s) => s !== me);
     const hot = (id) => { const { r, c } = parseSeat(id); return 1 + 7 * Math.exp(-(((r - 2) ** 2) + ((c - 3.5) ** 2)) / 5) + Math.random() * 2; };
     const w = Object.fromEntries(active.map((id) => [id, hot(id)]));
@@ -1613,19 +1642,19 @@ function setupDemoBar() {
     };
     for (const sid of sids) { if (run !== botRun) return; if (be().raw.tree().rooms.demo.state.phase !== 'betting') break; try { place(sid, !be().raw.tree().rooms.demo.bindings?.[sid]); } catch (e) { console.warn(e); } await sleep(160); }
     for (let k = 0; k < 10; k++) { if (run !== botRun) return; if (be().raw.tree().rooms.demo.state.phase !== 'betting') break; try { place(sids[Math.floor(Math.random() * sids.length)], false); } catch { /* noop */ } await sleep(350); }
-    if (run === botRun) { botRun = 0; botBtn.textContent = '🤖 가상 학생 31명 베팅'; toast('가상 학생 베팅이 끝났어요', 'ok'); }
+    if (run === botRun) { botRun = 0; botBtn.textContent = '가상 학생 31명 베팅'; toast('가상 학생 베팅이 끝났어요', 'ok'); }
   }
   async function runSelf() {
     const lines = []; const pre = h('pre', { class: 'log' }, '실행 중…');
-    const m = modal({ title: '🧪 추첨 자체 검증 (1,000회)', body: pre, actions: [{ label: '닫기', value: true, primary: true }] });
+    const m = modal({ title: '추첨 자체 검증 (1,000회)', body: pre, actions: [{ label: '닫기', value: true, primary: true }] });
     await sleep(60);
     const out = selfTest({ runs: 1000, log: (l) => { lines.push(l); console.log(l); } });
     console.table(out.checks); pre.textContent = lines.join('\n'); await m;
   }
-  const botBtn = h('button', { class: 'btn', onclick: () => runBots().catch((e) => toast(errMsg(e), 'bad')) }, '🤖 가상 학생 31명 베팅');
-  const menu = h('div', { class: 'demo-menu hidden' }, botBtn, h('button', { class: 'btn', onclick: runSelf }, '🧪 자체 검증 1,000회'),
-    h('button', { class: 'btn', onclick: async () => { if (await confirmBox('데모를 초기화할까요?', '모든 베팅·결과가 사라지고 처음 상태로 돌아가요.', '초기화')) { botRun++; await be().raw.reset(); ls.del('session'); location.reload(); } } }, '🔄 데모 초기화'));
-  $('#demobar').replaceChildren(h('div', { class: 'demo-bar' }, h('button', { class: 'btn', onclick: () => menu.classList.toggle('hidden') }, '🛠 데모 도구'), menu));
+  const botBtn = h('button', { class: 'btn', onclick: () => runBots().catch((e) => toast(errMsg(e), 'bad')) }, '가상 학생 31명 베팅');
+  const menu = h('div', { class: 'demo-menu hidden' }, botBtn, h('button', { class: 'btn', onclick: runSelf }, '자체 검증 1,000회'),
+    h('button', { class: 'btn', onclick: async () => { if (await confirmBox('데모를 초기화할까요?', '모든 베팅·결과가 사라지고 처음 상태로 돌아가요.', '초기화')) { botRun++; await be().raw.reset(); ls.del('session'); location.reload(); } } }, '데모 초기화'));
+  $('#demobar').replaceChildren(h('div', { class: 'demo-bar' }, h('button', { class: 'btn', onclick: () => menu.classList.toggle('hidden') }, '데모 도구'), menu));
   window.__demo = be().raw; // 테스트/디버그용
   window.__selfTest = (n = 1000) => selfTest({ runs: n, log: console.log });
 }
