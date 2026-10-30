@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "propcalc"
+version = "0.1.0"
+description = "고체 로켓 추진제 연소실 화학평형 및 성능 계산 (학술 탐구용 열화학 계산)"
+requires-python = ">=3.11"
+dependencies = ["numpy", "scipy", "pyyaml", "pandas", "matplotlib"]
+
+[project.optional-dependencies]
+cea = ["cea"]
+rocketcea = ["rocketcea"]
+dev = ["pytest"]
+
+[tool.setuptools]
+packages = ["propcalc", "propcalc.backends"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "needs_cea: NASA cea 패키지가 설치된 환경에서만 실행",
+    "needs_rocketcea: rocketcea가 설치된 환경에서만 실행",
+]

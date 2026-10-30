@@ -1,0 +1,88 @@
+# 사용자 정의 반응물 DB.
+# 규칙: 모든 항목은 source 와 verification 을 가져야 한다 (출처 없는 값은 넣지 않는다).
+#   verification:
+#     primary   - 1차 문헌/DB 원문에서 직접 확인함
+#     secondary - 2차 자료(미러, 요약 사이트 등)에서 확인함
+#     doc_only  - 작업 지시서에 적힌 값이며 이 세션에서 원문을 확인하지 못함
+#   u_dHf_kJ_per_mol 이 null 이면 불확실도 미확인 (민감도 분석 대상에서 제외).
+# 단위: dHf = 298.15 K 표준 생성엔탈피 (kJ/mol), M = g/mol.
+
+KNO3:
+  name: 질산칼륨 KNO3(cr)
+  formula: {K: 1, N: 1, O: 3}
+  dHf_kJ_per_mol: -494.63
+  u_dHf_kJ_per_mol: null
+  M_g_per_mol: 101.1032
+  phase: cr
+  source: >
+    Wagman et al. 1982, NBS Tables of Chemical Thermodynamic Properties,
+    J. Phys. Chem. Ref. Data 11 (Suppl. 2). 이 세션에서 원문 값 미확인;
+    2차 자료는 -494.5 (chemister.ru), -494.0 (webqc.org)로 +-0.6 kJ/mol 범위에서 일치.
+  verification: secondary
+  note: >
+    CEA 내장 'KNO3' 는 기체상 종(약 -315.8 kJ/mol, 이 세션에서 calc_property 로 확인)이며
+    고체가 아니다. 고체 KNO3 는 반드시 이 값으로 커스텀 반응물로 정의해야 한다.
+
+SORBITOL:
+  name: D-소르비톨 (D-glucitol)
+  formula: {C: 6, H: 14, O: 6}
+  dHf_kJ_per_mol: -1353.70
+  u_dHf_kJ_per_mol: 1.40
+  M_g_per_mol: 182.1718
+  phase: cr
+  source: >
+    NIST Chemistry WebBook (SRD 69), CAS 50-70-4, 고체 Delta_f H = -1353.70 +- 1.40 kJ/mol
+    (연소열 -3009.40 +- 1.40 kJ/mol). webbook.nist.gov 는 이 세션에서 접속 불가여서
+    Cheméo (https://www.chemeo.com/cid/19-665-3/Sorbitol) 의 NIST 인용값으로 확인함.
+  verification: secondary
+  note: >
+    연소열에서 역산하면 -1352.5 kJ/mol 로 1.2 kJ/mol 차이가 있으나 보고 불확실도 안이다.
+
+CELLULOSE_COTTON:
+  name: 셀룰로오스 (면 린터), 단위체
+  formula: {C: 6, H: 10, O: 5}
+  dHf_kJ_per_mol: -964.0
+  u_dHf_kJ_per_mol: 30.0
+  M_g_per_mol: 162.1406
+  phase: cr
+  source: Jessup & Prosen 1950, J. Res. NBS 44, 387 (-230,400 cal/mol). 지시서 기재값.
+  verification: doc_only
+  note: 실측 HHV 17.43 MJ/kg 에서 hess.py 로 역산한 값(-964 kJ/mol)과 일치 (tests/test_hess.py).
+
+CELLULOSE_WOOD:
+  name: 셀룰로오스 (목재 펄프), 단위체
+  formula: {C: 6, H: 10, O: 5}
+  dHf_kJ_per_mol: -959.0
+  u_dHf_kJ_per_mol: 30.0
+  M_g_per_mol: 162.1406
+  phase: cr
+  source: Jessup & Prosen 1950, J. Res. NBS 44, 387. 지시서 기재값.
+  verification: doc_only
+  note: ""
+
+AVICEL:
+  name: 미결정 셀룰로오스 (Avicel), 단위체
+  formula: {C: 6, H: 10, O: 5}
+  dHf_kJ_per_mol: -977.8
+  u_dHf_kJ_per_mol: 30.0
+  M_g_per_mol: 162.1406
+  phase: cr
+  source: >
+    Colbert et al. 1981, J. Res. NBS 86, 655 의 Delta_c H = -2812.4 +- 1.7 kJ/mol 에서
+    6(-393.51) + 5(-285.83) - (-2812.4) 로 역산. 지시서 기재 연소열 사용 (원문 미확인).
+  verification: doc_only
+  note: 역산 자체의 불확실도는 연소열 오차(1.7)가 지배하나, 지시서의 보수적 +-30 을 유지한다.
+
+WATER:
+  name: 물 H2O(l)
+  formula: {H: 2, O: 1}
+  dHf_kJ_per_mol: -285.83
+  u_dHf_kJ_per_mol: 0.04
+  M_g_per_mol: 18.0153
+  phase: l
+  source: Cox, Wagman, Medvedev, CODATA Key Values for Thermodynamics (1989). 지시서 기재값.
+  verification: doc_only
+  note: 흡습성 바이오매스의 수분 성분용 (Mixture.with_moisture).
+
+# 리그닌은 정의된 분자가 아니므로 여기에 고정값을 넣지 않는다.
+# 원소분석 + 실측 HHV 로 propcalc.hess 에서 Ingredient 를 만들어 사용할 것.

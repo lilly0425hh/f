@@ -1,0 +1,122 @@
+"""원소분석 + HHV 로부터 생성엔탈피(ΔfH°)를 역산한다 (헤스의 법칙).
+
+  연료 CcHhOoNnSs + O2 -> c CO2(g) + h/2 H2O(l) + n/2 N2 + s SO2(g)
+  ΔfH°(연료) = c·ΔfH°(CO2) + h/2·ΔfH°(H2O,l) + s·ΔfH°(SO2) − ΔcH°
+  ΔcH° = −HHV · M    [MJ/kg · g/mol = kJ/mol]
+
+단순화: 폭탄열량계의 정적 연소열(ΔcU)과 ΔcH° 의 차이(Δn_gas·RT, 리그닌 정도에서
+약 −3.5 kJ/mol)는 무시한다. 이 크기는 HHV 측정 불확실도보다 훨씬 작다.
+"""
+
+from __future__ import annotations
+
+import warnings
+from collections.abc import Mapping
+from dataclasses import dataclass, field
+
+from .formula import ATOMIC_WEIGHTS, as_formula_dict, molar_mass
+from .mixture import Ingredient
+
+# 생성물 기준값 (kJ/mol, 298.15 K). 출처: CODATA Key Values for Thermodynamics
+# (Cox, Wagman, Medvedev 1989). CO2, H2O 는 지시서 기재값과 일치. SO2 는 CODATA 값
+# -296.81 을 사용한다 (이 세션에서 원문 미확인, 영향은 황 함유 시료에 한정).
+DHF_CO2_G = -393.51
+DHF_H2O_L = -285.83
+DHF_SO2_G = -296.81
+
+# Channiwala & Parikh 2002 (Fuel 81, 1051) 상관식이 보고한 평균 절대 오차로 알려진 값.
+# 원문 미확인이므로 기본 불확실도 추정용으로만 쓴다.
+CP_DEFAULT_REL_UNCERTAINTY = 0.0145
+
+HHV_CORRELATION_WARNING = (
+    "생성엔탈피는 큰 두 수의 차이므로 HHV 1~2% 오차가 ΔfH°에서 수 % 이상으로 증폭됨. "
+    "실측 HHV 사용 권장"
+)
+
+
+def channiwala_parikh_hhv(C: float, H: float, O: float, N: float = 0.0, S: float = 0.0,
+                          ash: float = 0.0) -> float:
+    """HHV [MJ/kg] = 0.3491C + 1.1783H + 0.1005S − 0.1034O − 0.0151N − 0.0211A (질량%, 건조 기준)."""
+    return 0.3491 * C + 1.1783 * H + 0.1005 * S - 0.1034 * O - 0.0151 * N - 0.0211 * ash
+
+
+@dataclass(frozen=True)
+class HessResult:
+    formula: dict[str, float]
+    M_g_per_mol: float
+    hhv_MJ_per_kg: float
+    hhv_source: str  # "measured" | "correlation"
+    dHf_kJ_per_mol: float
+    u_dHf_kJ_per_mol: float | None
+    dcH_kJ_per_mol: float
+    warnings: tuple[str, ...] = field(default_factory=tuple)
+
+
+def dHf_from_hhv(
+    formula: str | Mapping[str, float],
+    hhv_MJ_per_kg: float,
+    u_hhv_MJ_per_kg: float | None = None,
+    hhv_source: str = "measured",
+) -> HessResult:
+    f = as_formula_dict(formula)
+    unsupported = set(f) - {"C", "H", "O", "N", "S"}
+    if unsupported:
+        raise NotImplementedError(f"회분/금속 원소는 지원하지 않는다: {sorted(unsupported)}")
+    if hhv_MJ_per_kg <= 0:
+        raise ValueError("HHV 는 양수여야 한다")
+    M = molar_mass(f)
+    dcH = -hhv_MJ_per_kg * M
+    dHf = (f.get("C", 0.0) * DHF_CO2_G + f.get("H", 0.0) / 2 * DHF_H2O_L
+           + f.get("S", 0.0) * DHF_SO2_G - dcH)
+    u = None if u_hhv_MJ_per_kg is None else u_hhv_MJ_per_kg * M
+    warns = (HHV_CORRELATION_WARNING,) if hhv_source == "correlation" else ()
+    for w in warns:
+        warnings.warn(w, UserWarning, stacklevel=3)
+    return HessResult(f, M, hhv_MJ_per_kg, hhv_source, dHf, u, dcH, warns)
+
+
+def formula_from_elemental_analysis(C: float, H: float, O: float, N: float = 0.0, S: float = 0.0,
+                                    basis_C: float = 10.0) -> dict[str, float]:
+    """질량% 원소분석을 탄소 basis_C 개 기준 화학식으로 환산한다."""
+    mol = {"C": C / ATOMIC_WEIGHTS["C"], "H": H / ATOMIC_WEIGHTS["H"], "O": O / ATOMIC_WEIGHTS["O"],
+           "N": N / ATOMIC_WEIGHTS["N"], "S": S / ATOMIC_WEIGHTS["S"]}
+    scale = basis_C / mol["C"]
+    return {el: n * scale for el, n in mol.items() if n > 0}
+
+
+def dHf_from_elemental_analysis(
+    C: float, H: float, O: float, N: float = 0.0, S: float = 0.0, ash: float = 0.0,
+    hhv_MJ_per_kg: float | None = None,
+    u_hhv_MJ_per_kg: float | None = None,
+    formula: str | Mapping[str, float] | None = None,
+    basis_C: float = 10.0,
+) -> HessResult:
+    """원소분석(질량%, 건조·무회분 기준) 에서 ΔfH° 를 구한다.
+
+    hhv_MJ_per_kg 를 주면 실측값으로, 주지 않으면 Channiwala–Parikh 상관식을 쓰고 경고한다.
+    formula 를 주지 않으면 원소분석에서 C=basis_C 기준 화학식을 만든다.
+    """
+    total = C + H + O + N + S + ash
+    if abs(total - 100.0) > 1.0:
+        raise ValueError(f"원소분석 합이 100% 에서 1% 이상 벗어난다: {total:.2f} (회분은 ash 로 지정)")
+    f = as_formula_dict(formula) if formula is not None else formula_from_elemental_analysis(
+        C, H, O, N, S, basis_C)
+    if hhv_MJ_per_kg is None:
+        hhv = channiwala_parikh_hhv(C, H, O, N, S, ash)
+        u = u_hhv_MJ_per_kg if u_hhv_MJ_per_kg is not None else CP_DEFAULT_REL_UNCERTAINTY * hhv
+        return dHf_from_hhv(f, hhv, u, hhv_source="correlation")
+    return dHf_from_hhv(f, hhv_MJ_per_kg, u_hhv_MJ_per_kg, hhv_source="measured")
+
+
+def ingredient_from_hhv(key: str, name: str, formula: str | Mapping[str, float], hhv_MJ_per_kg: float,
+                        u_hhv_MJ_per_kg: float | None, source: str,
+                        hhv_source: str = "measured") -> Ingredient:
+    """HHV 로 역산한 ΔfH° 를 가진 Ingredient 를 만든다 (리그닌 등 정의되지 않은 분자용)."""
+    r = dHf_from_hhv(formula, hhv_MJ_per_kg, u_hhv_MJ_per_kg, hhv_source)
+    return Ingredient(
+        key=key, name=name, formula=r.formula, dHf_kJ_per_mol=r.dHf_kJ_per_mol,
+        u_dHf_kJ_per_mol=r.u_dHf_kJ_per_mol, M_g_per_mol=r.M_g_per_mol, phase="cr",
+        source=f"헤스 역산: HHV={hhv_MJ_per_kg:g} MJ/kg ({hhv_source}); {source}",
+        verification="secondary" if hhv_source == "measured" else "doc_only",
+        note="원소분석과 HHV 는 같은 시료에서 얻은 값이어야 한다." if hhv_source == "measured" else HHV_CORRELATION_WARNING,
+    )
