@@ -3,11 +3,13 @@
 API 근거 (이 세션에서 설치된 cea 3.3.4 의 stub, 샘플(rp1311/example5,8,12,13), 실측으로 확인):
 - 사용자 반응물: cea.Reactant(name, formula, molecular_weight, enthalpy, enthalpy_units, temperature)
 - 로켓 문제: RocketSolver.solve(soln, weights, pc[bar], pi_p=[Pc/Pe], supar=[Ae/At], iac=True, hc=h/R, n_frz=)
-- 스테이션 순서(IAC): 0=연소실, 1=목, 2=출구. n_frz: 1=연소실부터 동결, 2=목부터 동결
-  (샘플 example12 "frozen composition from the throat" 및 rocketcea 문서 문자열과 일치).
+- 스테이션 순서(IAC): 결과 배열 인덱스 0=연소실, 1=목, 2=출구. n_frz 는 1부터 세는 스테이션 번호이며
+  1=연소실부터 동결, 2=목부터 동결.
+  n_frz=2 는 nasa.github.io/cea Example 12("composition frozen at the throat", n_frz = 2)와 그 출력
+  (연소실 열만 조성이 다르고 목 이후 열의 질량분율이 모두 같음)으로 2026-10-30 직접 확인했다.
+  n_frz=1 이 연소실 동결이라는 것은 웹 문서에 명시가 없어 샘플 주석과 rocketcea 문서 문자열에서 추론한 값이다.
 - 응축상 종은 species_names 에서 기체 종 뒤(인덱스 >= num_gas)에 위치한다.
 - calc_property(ENTHALPY) 는 J/kg, nj 는 mol/g 단위.
-공식 문서 사이트(nasa.github.io/cea)는 이 세션에서 접속할 수 없어 위 근거로 대체했다.
 """
 
 from __future__ import annotations

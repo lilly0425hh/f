@@ -42,17 +42,17 @@ print(performance.report(res).summary())
 
 ## 데이터 출처 규칙
 
-모든 반응물 값은 `source`와 `verification`(`primary` / `secondary` / `doc_only`)을 가집니다. `primary`가 아닌 입력값은 계산 결과의 `Result.warnings`에 자동으로 실립니다. 현재 DB에는 `primary` 항목이 하나도 없습니다.
+모든 반응물 값은 `source`와 `verification`(`primary` / `secondary` / `doc_only`)을 가집니다. `primary`가 아닌 입력값은 계산 결과의 `Result.warnings`에 자동으로 실립니다. 현재 DB의 `primary` 항목은 소르비톨 하나뿐입니다.
 
 | 성분 | ΔfH° (kJ/mol) | 검증 수준 | 비고 |
 |---|---|---|---|
 | KNO3(cr) | −494.63 | secondary | Wagman 1982 원문 미확인. 2차 자료는 −494.5, −494.0 |
-| 소르비톨 | −1353.70 ± 1.40 | secondary | NIST WebBook 직접 접속 불가. Cheméo의 NIST 인용값 |
+| 소르비톨 | −1353.70 ± 1.40 | primary | NIST WebBook 직접 확인(2026-10-30). WebBook이 인용한 Gerasimov 1985 원논문은 미확인 |
 | 셀룰로오스(면), (목재), Avicel, 물 | 지시서 기재값 | doc_only | 원문 미확인 |
 
 KNO3의 불확실도는 미확인(null)이라, 민감도 분석에서 쓰려면 `u_kJ_per_mol`을 직접 지정해야 합니다.
 
-바이오매스 연료(코코피트 등)는 현재 DB에 없습니다. 검토한 문헌(코코넛 껍질 분말 논문, 코코피트 퇴비화 논문)은 원소분석이 오류로 보이거나 아예 없어서 채택하지 않았습니다. 새 연료는 `hess.dHf_from_dry_basis_report`로 건조 기준 분석 결과(회분 포함, 실측 HHV)를 받아 입력하며, 의뢰 항목과 보고 형식은 [docs/coir_pith_analysis_request.md](docs/coir_pith_analysis_request.md)에 있습니다.
+바이오매스 연료(코코피트 등)는 현재 DB에 없습니다. 검토한 문헌(코코넛 껍질 분말 논문, 코코피트 퇴비화 논문)은 원소분석이 오류로 보이거나 아예 없어서 채택하지 않았습니다. 이후 후보 문헌의 원문 확인 결과는 [docs/coir_pith_literature_review.md](docs/coir_pith_literature_review.md)에 출처 등급과 함께 있으며, 같은 시료의 원소분석·회분·수분·실측 HHV를 원문에서 확인한 문헌은 아직 없습니다. 새 연료는 `hess.dHf_from_dry_basis_report`로 건조 기준 분석 결과(회분 포함, 실측 HHV)를 받아 입력하며, 의뢰 항목과 보고 형식은 [docs/coir_pith_analysis_request.md](docs/coir_pith_analysis_request.md)에 있습니다.
 
 ## 지시서와 다르거나 새로 확인한 점
 
@@ -60,7 +60,7 @@ KNO3의 불확실도는 미확인(null)이라, 민감도 분석에서 쓰려면 
 2. `cea.Reactant` 이름은 15자 이하여야 합니다(16자부터 `CEA_INVALID_SIZE`). 백엔드가 `R0_<키>` 형태로 줄여 전달합니다.
 3. CEA는 `converged=True`를 보고하면서도 비물리적 값을 낼 수 있습니다. 예: KNO3 87% 이상의 소르비톨(c* 0.1 m/s, M=0), 리그닌(가상 시료) KNO3 30~34%(Isp 3.4×10⁷ s, NaN). `check_physical`이 이를 `ConvergenceError`로 거부하며, 스윕은 해당 행을 지우지 않고 `ok=False`와 사유를 남깁니다.
 4. 동결 유동(`mode="frozen"`)은 응축상이 있는 계(KNSB)에서 CEA가 "응축상 온도 범위를 50 K 이상 벗어남"으로 중단하므로 `ConvergenceError`가 납니다. rocketcea도 0.0을 반환합니다. rocketcea 백엔드는 평형 전용입니다.
-5. 이 세션에서는 `webbook.nist.gov`와 `nasa.github.io`에 접속할 수 없었습니다. cea API는 설치된 패키지의 stub, 공식 샘플(`rp1311/example5,8,12,13`), 실측으로 확인했습니다. `n_frz` 의미(1=연소실부터 동결, 2=목부터 동결)는 샘플 주석과 rocketcea 문서 문자열에서 추론했습니다.
+5. 첫 세션에서는 `webbook.nist.gov`와 `nasa.github.io`에 접속하지 못했으나 2026-10-30 세션에서 둘 다 확인했습니다. `n_frz=2`가 목부터 동결이라는 것은 nasa.github.io/cea의 Example 12("composition frozen at the throat", `n_frz = 2`)와 그 출력(연소실 열만 조성이 다르고 목 이후 열의 질량분율이 같음)으로 확인했습니다. `n_frz=1`이 연소실부터 동결이라는 것은 웹 문서에 명시가 없어 여전히 샘플 주석과 rocketcea 문서 문자열에서 추론한 값입니다. 이 코드는 `frozen_at="chamber"`일 때만 `n_frz=1`을 씁니다.
 
 ## 검증 결과 (KNSB 65/35, Pc 6.895 MPa, Pe 0.101325 MPa, 평형)
 
@@ -103,7 +103,9 @@ KNO3의 불확실도는 미확인(null)이라, 민감도 분석에서 쓰려면 
 
 - Gordon, S., McBride, B.J. (1994). NASA RP-1311.
 - McBride, B.J., Zehe, M.J., Gordon, S. (2002). NASA/TP-2002-211556.
-- NASA CEA: https://github.com/nasa/cea
+- NASA CEA: https://github.com/nasa/cea, 문서 https://nasa.github.io/cea/
+- NIST Chemistry WebBook, D-sorbitol (CAS 50-70-4): https://webbook.nist.gov/cgi/cbook.cgi?ID=C50704&Units=SI&Mask=2
+- Gerasimov, P.A., Blokh, E.L., Gubareva, A.I. (1985). Izv. Vyssh. Uchebn. Zaved., Khim. Khim. Tekhnol. 28, 54-56 (WebBook 인용, 원논문 미확인).
 - RocketCEA: https://rocketcea.readthedocs.io/en/latest/new_propellants.html
 - Jessup, R.S., Prosen, E.J. (1950). J. Res. NBS 44, 387.
 - Colbert, J.C. et al. (1981). J. Res. NBS 86, 655.
