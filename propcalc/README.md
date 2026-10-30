@@ -52,7 +52,7 @@ print(performance.report(res).summary())
 
 KNO3의 불확실도는 미확인(null)이라, 민감도 분석에서 쓰려면 `u_kJ_per_mol`을 직접 지정해야 합니다.
 
-바이오매스 연료(코코피트 등)는 현재 DB에 없습니다. 검토한 문헌(코코넛 껍질 분말 논문, 코코피트 퇴비화 논문)은 원소분석이 오류로 보이거나 아예 없어서 채택하지 않았습니다. 이후 후보 문헌의 원문 확인 결과는 [docs/coir_pith_literature_review.md](docs/coir_pith_literature_review.md)에 출처 등급과 함께 있으며, 같은 시료의 원소분석·회분·수분·실측 HHV를 원문에서 확인한 문헌은 아직 없습니다. 새 연료는 `hess.dHf_from_dry_basis_report`로 건조 기준 분석 결과(회분 포함, 실측 HHV)를 받아 입력하며, 의뢰 항목과 보고 형식은 [docs/coir_pith_analysis_request.md](docs/coir_pith_analysis_request.md)에 있습니다.
+바이오매스 연료(코코피트 등)는 현재 DB에 없습니다. 검토한 문헌(코코넛 껍질 분말 논문, 코코피트 퇴비화 논문)은 원소분석이 오류로 보이거나 아예 없어서 채택하지 않았습니다. 이후 후보 문헌의 원문 확인 결과는 [docs/coir_pith_literature_review.md](docs/coir_pith_literature_review.md)에 출처 등급과 함께 있으며, 코코피트의 같은 시료 원소분석·회분·수분·실측 HHV를 원문에서 확인한 문헌은 아직 없습니다(원문을 열람한 3편은 대상 물질이 코코피트가 아니고, 2편은 본문을 열람하지 못했습니다). 새 연료는 `hess.dHf_from_dry_basis_report`로 건조 기준 분석 결과(회분 포함, 실측 HHV)를 받아 입력하며, 의뢰 항목과 보고 형식은 [docs/coir_pith_analysis_request.md](docs/coir_pith_analysis_request.md)에 있습니다.
 
 ## 지시서와 다르거나 새로 확인한 점
 
