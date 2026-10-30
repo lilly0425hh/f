@@ -52,6 +52,8 @@ print(performance.report(res).summary())
 
 KNO3의 불확실도는 미확인(null)이라, 민감도 분석에서 쓰려면 `u_kJ_per_mol`을 직접 지정해야 합니다.
 
+바이오매스 연료(코코피트 등)는 현재 DB에 없습니다. 검토한 문헌(코코넛 껍질 분말 논문, 코코피트 퇴비화 논문)은 원소분석이 오류로 보이거나 아예 없어서 채택하지 않았습니다. 새 연료는 `hess.dHf_from_dry_basis_report`로 건조 기준 분석 결과(회분 포함, 실측 HHV)를 받아 입력하며, 의뢰 항목과 보고 형식은 [docs/coir_pith_analysis_request.md](docs/coir_pith_analysis_request.md)에 있습니다.
+
 ## 지시서와 다르거나 새로 확인한 점
 
 1. CEA 내장 `KNO3`는 고체가 아닙니다. 이 종의 298 K 엔탈피는 약 −316 kJ/mol로 기체상 값입니다(고체는 −494.6). 이를 그대로 쓰면 KNSB Tc가 1971 K, c*가 1056 m/s로 나옵니다. 지시서의 "KNO3(cr): CEA 내장 DB 사용"은 성립하지 않으므로 고체 KNO3를 커스텀 반응물로 정의합니다. 이 방식에서 Tc 1599 K, c* 910.7 m/s로 문헌 범위에 들어옵니다.

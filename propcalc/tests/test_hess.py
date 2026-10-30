@@ -96,3 +96,66 @@ def test_ingredient_from_hhv_carries_provenance():
     assert ing.dHf_kJ_per_mol == pytest.approx(-806.0, abs=10)
     assert ing.u_dHf_kJ_per_mol == pytest.approx(0.5 * 178.1, rel=0.01)
     assert "HHV" in ing.source and "test fixture" in ing.source
+
+
+# --- 건조 기준(회분 포함) 보고서 접수 -------------------------------------------------
+# 아래 숫자는 실제 코코피트 데이터가 아니라 변환 로직 검증용 합성 데이터(셀룰로오스 조성)이다.
+from propcalc.hess import dHf_from_dry_basis_report
+
+_DAF = dict(C=44.44, H=6.22, N=0.0, S=0.0, O=49.34)  # 건조·무회분 기준, 합 100.0
+
+
+def _dry(ash_pct, hhv_daf=17.43):
+    k = 1 - ash_pct / 100
+    return dict(C=_DAF["C"] * k, H=_DAF["H"] * k, N=0.0, S=0.0, O=_DAF["O"] * k,
+                ash=ash_pct, hhv_dry_MJ_per_kg=hhv_daf * k)
+
+
+@pytest.mark.parametrize("ash", [0.0, 4.9, 9.1, 15.0])
+def test_dry_basis_report_reproduces_daf_result(ash):
+    direct = dHf_from_hhv("C6H10O5", 17.43)
+    r = dHf_from_dry_basis_report(**_dry(ash), formula="C6H10O5")
+    assert r.dHf_kJ_per_mol == pytest.approx(direct.dHf_kJ_per_mol, abs=1e-6)
+    assert r.hhv_MJ_per_kg == pytest.approx(17.43, abs=1e-9)  # 무회분 기준 HHV 로 환산됨
+
+
+def test_oxygen_by_difference_matches_direct_oxygen_and_is_flagged():
+    d = _dry(9.1)
+    with_o = dHf_from_dry_basis_report(**d, formula="C6H10O5")
+    d2 = {k: v for k, v in d.items() if k != "O"}
+    by_diff = dHf_from_dry_basis_report(**d2, formula="C6H10O5")
+    assert by_diff.dHf_kJ_per_mol == pytest.approx(with_o.dHf_kJ_per_mol, abs=1e-6)
+    assert any("차이법" in w for w in by_diff.warnings)
+    assert not any("차이법" in w for w in with_o.warnings)
+
+
+def test_ash_exclusion_is_always_reported():
+    r = dHf_from_dry_basis_report(**_dry(9.1), formula="C6H10O5")
+    assert any("회분" in w and "9.1" in w for w in r.warnings)
+
+
+def test_uncertainty_is_scaled_to_ash_free_basis():
+    r = dHf_from_dry_basis_report(**_dry(10.0), formula="C6H10O5", u_hhv_dry_MJ_per_kg=0.18)
+    assert r.u_dHf_kJ_per_mol == pytest.approx(0.18 / 0.9 * 162.14, rel=1e-3)
+
+
+def test_closure_failure_is_rejected():
+    d = _dry(9.1)
+    d["O"] -= 6.0  # 합이 94% 정도 -> 분석 누락/오류 의심
+    with pytest.raises(ValueError, match="합"):
+        dHf_from_dry_basis_report(**d, formula="C6H10O5")
+
+
+def test_negative_oxygen_by_difference_is_rejected():
+    d = {k: v for k, v in _dry(9.1).items() if k != "O"}
+    d["C"] += 50.0  # C+H+N+S+회분 = 105% -> 차이법 산소 음수
+    with pytest.raises(ValueError, match="산소"):
+        dHf_from_dry_basis_report(**d, formula="C6H10O5")
+
+
+@pytest.mark.parametrize("ash", [-1.0, 100.0, 120.0])
+def test_invalid_ash(ash):
+    d = _dry(9.1)
+    d["ash"] = ash
+    with pytest.raises(ValueError):
+        dHf_from_dry_basis_report(**d)

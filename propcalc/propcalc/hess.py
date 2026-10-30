@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import warnings
 from collections.abc import Mapping
 from dataclasses import dataclass, field
@@ -106,6 +107,47 @@ def dHf_from_elemental_analysis(
         u = u_hhv_MJ_per_kg if u_hhv_MJ_per_kg is not None else CP_DEFAULT_REL_UNCERTAINTY * hhv
         return dHf_from_hhv(f, hhv, u, hhv_source="correlation")
     return dHf_from_hhv(f, hhv_MJ_per_kg, u_hhv_MJ_per_kg, hhv_source="measured")
+
+
+def dHf_from_dry_basis_report(
+    C: float, H: float, N: float, S: float, ash: float, hhv_dry_MJ_per_kg: float,
+    O: float | None = None,
+    u_hhv_dry_MJ_per_kg: float | None = None,
+    formula: str | Mapping[str, float] | None = None,
+    basis_C: float = 10.0,
+    closure_tol: float = 1.5,
+) -> HessResult:
+    """건조 기준(회분 포함) 분석 보고서를 건조·무회분(daf) 기준으로 환산해 ΔfH° 를 역산한다.
+
+    입력은 모두 같은 건조 시료의 값이어야 한다 (질량%, HHV 는 MJ/kg-건조). O 를 주지 않으면
+    O = 100 − (C+H+N+S+회분) 로 차이법 계산하며, 이 경우 다른 원소 분석 오차가 모두 O 에 쌓인다.
+    O 를 주면 합이 100±closure_tol % 안이어야 한다.
+    회분은 반응물 조성에서 제외된다(이 모델은 C,H,O,N,S 만 지원). 따라서 결과 연료의 질량%는
+    무회분 유기물 기준이며, 실제 시료의 회분 질량만큼 배합 질량이 어긋난다.
+    """
+    if not 0 <= ash < 100:
+        raise ValueError(f"회분은 0 이상 100 미만이어야 한다: {ash}")
+    warns: list[str] = []
+    organic = C + H + N + S + ash
+    if O is None:
+        O = 100.0 - organic
+        if O < 0:
+            raise ValueError(f"차이법 산소가 음수다 ({O:.2f}%): C+H+N+S+회분 이 100% 를 넘는다")
+        warns.append(f"산소는 차이법({O:.2f}%)이다. 다른 원소 분석 오차가 모두 O 에 쌓이므로 직접 측정을 권장")
+    elif abs(organic + O - 100.0) > closure_tol:
+        raise ValueError(f"C+H+N+S+O+회분 의 합이 {organic + O:.2f}% 이다 (허용 100±{closure_tol}%). "
+                         "분석 항목 누락이나 기준(건량/습량) 혼용을 확인하라")
+    k = 1.0 - ash / 100.0
+    daf = dict(C=C / k, H=H / k, N=N / k, S=S / k, O=O / k)
+    scale = 100.0 / sum(daf.values())  # 합 오차를 무회분 기준에서 정규화
+    daf = {el: v * scale for el, v in daf.items()}
+    f = as_formula_dict(formula) if formula is not None else formula_from_elemental_analysis(
+        daf["C"], daf["H"], daf["O"], daf["N"], daf["S"], basis_C)
+    hhv_daf = hhv_dry_MJ_per_kg / k
+    u_daf = None if u_hhv_dry_MJ_per_kg is None else u_hhv_dry_MJ_per_kg / k
+    r = dHf_from_hhv(f, hhv_daf, u_daf, hhv_source="measured")
+    warns.append(f"회분 {ash:g}% 는 반응물에서 제외됨 (무회분 기준 ΔfH°). 배합 질량%는 무회분 유기물 기준")
+    return dataclasses.replace(r, warnings=r.warnings + tuple(warns))
 
 
 def ingredient_from_hhv(key: str, name: str, formula: str | Mapping[str, float], hhv_MJ_per_kg: float,
