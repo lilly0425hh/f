@@ -72,6 +72,28 @@ class Result:
         return sorted(items, key=lambda kv: -kv[1])[:n]
 
 
+def check_physical(r: Result) -> None:
+    """고체 추진제 평형 결과의 물리적 타당성 검사. 위반 시 ConvergenceError.
+
+    CEA 는 일부 조성(예: KNO3 87% 이상, 리그닌 KNO3 32~34%)에서 converged=True 를 돌려주면서
+    c*≈0, M=0, Isp=NaN/3e7 s 같은 값을 낸다 (이 세션에서 실측). 이런 값은 걸러야 한다.
+    경계는 고체 추진제에 대해 넉넉하게 잡은 상식 범위이며 정밀한 검증이 아니다.
+    """
+    import math
+
+    checks = {
+        "Tc_K": (r.Tc_K, 300.0, 5000.0), "Te_K": (r.Te_K, 50.0, 5000.0),
+        "c_star_m_s": (r.c_star_m_s, 200.0, 3000.0), "isp_s": (r.isp_s, 20.0, 600.0),
+        "isp_vac_s": (r.isp_vac_s, 20.0, 600.0), "Cf": (r.Cf, 0.5, 2.6),
+        "M_eff_g_mol": (r.M_eff_g_mol, 5.0, 200.0), "gamma_s": (r.gamma_s, 0.8, 2.0),
+    }
+    bad = [f"{k}={v:g} (허용 {lo:g}~{hi:g})" for k, (v, lo, hi) in checks.items()
+           if not (isinstance(v, float) or isinstance(v, int)) or math.isnan(v) or not lo <= v <= hi]
+    if bad:
+        raise ConvergenceError(
+            "비물리적 결과로 거부함 (CEA 가 converged 를 보고해도 값이 쓰레기일 수 있음): " + ", ".join(bad))
+
+
 class Backend(ABC):
     name: str = "base"
 

@@ -135,3 +135,35 @@ def test_regression_against_stored_cea_result(res):
     assert res.condensed_mass_fraction == pytest.approx(out["condensed_mass_fraction"], rel=1e-3)
     for sp, val in out["species_moles_per_kg_top"].items():
         assert res.species_moles_per_kg[sp] == pytest.approx(val, rel=1e-3)
+
+
+def test_long_ingredient_keys_are_accepted(knsb):
+    """회귀 방지: cea 반응물 이름은 15자 제한이 있어 긴 DB 키(CELLULOSE_COTTON 등)를 줄여 전달해야 한다."""
+    long_a = knsb.ingredient("KNO3").__class__.custom(
+        key="A_VERY_LONG_OXIDIZER_KEY_NAME", name="KNO3 copy", formula="KNO3",
+        dHf_kJ_per_mol=-494.63, u_dHf_kJ_per_mol=None, source="test fixture (KNO3 복제)")
+    m = Mixture.from_wt_pct({long_a.key: 65, "SORBITOL": 35}, load_ingredients(), extra=[long_a])
+    r = get_backend("cea").run(m, PC, Pe_MPa=PE)
+    assert r.Tc_K == pytest.approx(1599.37, abs=0.05)
+
+
+@pytest.mark.parametrize("fuel,ox", [("SORBITOL", 87), ("SORBITOL", 90), ("CELLULOSE_COTTON", 88)])
+def test_garbage_but_flagged_converged_results_are_rejected(fuel, ox):
+    """회귀 방지: 이 점들에서 CEA 는 converged=True 로 c*≈0, M_eff=0, Isp=NaN 같은 비물리적 값을 낸다.
+    백엔드가 조용히 통과시키면 스윕의 Isp 최대점이 쓰레기 값에 오염된다."""
+    m = Mixture.from_wt_pct({"KNO3": ox, fuel: 100 - ox}, load_ingredients())
+    with pytest.raises(ConvergenceError, match="비물리적"):
+        get_backend("cea").run(m, PC, Pe_MPa=PE)
+
+
+def test_physical_screen_unit():
+    from propcalc.backends.base import check_physical
+
+    r = get_backend("cea").run(Mixture.from_wt_pct({"KNO3": 65, "SORBITOL": 35}, load_ingredients()), PC, Pe_MPa=PE)
+    check_physical(r)  # 정상 결과는 통과
+    import dataclasses
+
+    for field, bad in (("c_star_m_s", 0.1), ("isp_s", float("nan")), ("M_eff_g_mol", 0.0),
+                       ("Tc_K", 100.0), ("isp_s", 3.4e7)):
+        with pytest.raises(ConvergenceError, match="비물리적"):
+            check_physical(dataclasses.replace(r, **{field: bad}))

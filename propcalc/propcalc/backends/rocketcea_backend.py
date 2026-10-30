@@ -12,7 +12,7 @@ import hashlib
 import re
 
 from ..mixture import Mixture
-from .base import G0, Backend, Result, validate_run_args
+from .base import G0, Backend, Result, check_physical, validate_run_args
 
 PSI_PER_PA = 1.0 / 6894.757293168
 FT_TO_M = 0.3048
@@ -92,7 +92,7 @@ class RocketCEABackend(Backend):
             if x_c > 0:
                 species[name] = x_c * 1000.0 / float(molw[raw])
 
-        return Result(
+        res = Result(
             backend=self.name, mode=mode, Pc_MPa=Pc_MPa, Pe_MPa=Pe_out, area_ratio=eps,
             composition_wt_pct=dict(mixture.wt_pct()),
             Tc_K=float(tc_R) / 1.8, M_eff_g_mol=1.0 / n_gas, MW_g_mol=float(mw_c),
@@ -103,3 +103,5 @@ class RocketCEABackend(Backend):
             Tt_K=float(temps[1]) / 1.8, exit_condensed_mass_fraction=exit_cond,
             warnings=mixture.provenance_notes(),
         )
+        check_physical(res)
+        return res

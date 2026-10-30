@@ -17,9 +17,10 @@ import warnings
 import numpy as np
 
 from ..mixture import Mixture
-from .base import G0, Backend, ConvergenceError, Result, validate_run_args
+from .base import G0, Backend, ConvergenceError, Result, check_physical, validate_run_args
 
 TRACE_CUTOFF = 1e-12  # mol/kg 미만 종은 결과에서 생략
+MAX_NAME_LEN = 15     # cea.Reactant 이름 최대 길이
 
 
 class CEABackend(Backend):
@@ -44,14 +45,15 @@ class CEABackend(Backend):
 
         active = [(ing, w) for ing, w in mixture.parts if w > 0]
         # 고체 KNO3 처럼 CEA DB 에 없거나 상(phase)이 다른 반응물은 항상 커스텀 반응물로 전달한다.
-        # 이름 충돌을 피하려고 접미사를 붙인다 (예: DB 의 기체 'KNO3' 와 구분).
+                # 반응물 이름은 15자 이하여야 한다 (16자부터 CEA_INVALID_SIZE, 이 세션에서 실측).
+        # 인덱스 접두어로 유일성을 보장하고 DB 종 이름과의 충돌도 피한다.
         reactants = [
             cea.Reactant(
-                name=f"{ing.key}_R", formula={k: float(v) for k, v in ing.formula.items()},
+                name=f"R{i}_{ing.key}"[:MAX_NAME_LEN], formula={k: float(v) for k, v in ing.formula.items()},
                 molecular_weight=ing.M_g_per_mol, enthalpy=ing.dHf_kJ_per_mol,
                 enthalpy_units="kJ/mol", temperature=mixture.T_K,
             )
-            for ing, _ in active
+            for i, (ing, _) in enumerate(active)
         ]
         weights = np.array([w for _, w in active], dtype=float) / 100.0
         T0 = np.full(len(active), mixture.T_K)
@@ -104,4 +106,5 @@ class CEABackend(Backend):
             M_e_g_mol=float(sol.M[-1]), Tt_K=float(sol.T[1]),
             exit_condensed_mass_fraction=exit_cond, warnings=warns,
         )
+        check_physical(res)
         return res
