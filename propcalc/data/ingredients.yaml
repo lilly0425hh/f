@@ -133,5 +133,31 @@ YOUNG_COCONUT_HUSK_SS:
     두 산지 시료의 ΔfH° 가 약 349 kJ/mol 다르며 이는 각 시료의 u 보다 크다. 같은 종류 시료의 로트 차이가
     반복 측정 편차보다 크다는 뜻이다. 회분(건조 환산 5.14%)은 반응물에서 제외된다.
 
+# 커피박. 한 논문의 한 시료(원소분석과 봄브 열량계 HHV 가 같은 시료 행)이며, 불확실도는 측정 SD 가 아니라
+# 문헌 간 산포다.
+SPENT_COFFEE_GROUNDS:
+  name: 커피박 (spent coffee grounds), 건조 기준
+  formula: {C: 10, H: 15.9676, O: 5.8554, N: 0.3944, S: 0.0674}
+  dHf_kJ_per_mol: -891.2
+  u_dHf_kJ_per_mol: 436.0
+  M_g_per_mol: 237.572
+  phase: cr
+  source: >
+    Mukherjee, Okolie, Niu, Dalai (2021), ACS Omega, doi 10.1021/acsomega.1c05270 (PMC8756566),
+    Table 1 "spent coffee grounds / raw material" 행과 Table 4 같은 시료의 "HHV (MJ/kg, dry basis)"를
+    2026-10-31 PMC 전문 XML에서 직접 읽음. 입력(건조 기준 질량%): C 50, H 6.7, N 2.3, S 0.9,
+    O 39.0(차이법), 회분 0.9, 수분 3.3, HHV 22.3 MJ/kg (PARR 6400 열량계). 불확실도의 HHV 성분은
+    Efthymiopoulos 외를 포함한 16개 SCG 값(19.30~24.91, 평균 22.06, SD 1.80 MJ/kg)의 문헌 간 산포로,
+    PMC9061234 Table 1(Environ Dev Sustain 2022, 다른 문헌의 값을 모은 2차 비교표)에서 추출.
+  verification: secondary
+  note: >
+    u 436.0 은 HHV 문헌 간 SD 1.80 MJ/kg × M(428)과 기준 가정 차이의 반폭(62.7)의 직교 합성이다.
+    이 논문은 반복 측정 SD 를 보고하지 않아 측정 불확실도를 모른다. 선택한 논문의 단일 값이므로 "커피박 일반"을
+    대표한다고 볼 수 없다. 한계: 시료를 증류수로 세척하고 105 도에서 건조한 전처리 후 분석함(회분과 추출물이
+    달라질 수 있음). C 는 정수로 보고돼 ±0.5 wt% 이상의 반올림 오차가 있음. 건조 기준 표인데 수분 3.3%가 같이
+    있음(잔류 수분으로 해석). 합 C+H+N+S+O+회분 = 99.8%(0.2% 부족, 무회분 환산에서 정규화).
+    HHV 측정 표준 번호와 반복 횟수 미기재. 수분을 포함한 기준으로 읽으면 ΔfH° 가 -765.8 kJ/mol 로 바뀐다.
+    회분(0.9%)은 반응물에서 제외된다. 원문의 O 는 100 - (C+H+N+S+회분) 로 계산된 값이다.
+
 # 리그닌은 정의된 분자가 아니므로 여기에 고정값을 넣지 않는다.
 # 원소분석 + 실측 HHV 로 propcalc.hess 에서 Ingredient 를 만들어 사용할 것.
