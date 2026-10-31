@@ -90,5 +90,48 @@ WATER:
   verification: doc_only
   note: 흡습성 바이오매스의 수분 성분용 (Mixture.with_moisture).
 
+# 코코피트 대용 후보. 코코피트가 아니라 어린 코코넛 외피이며, 같은 논문의 두 산지 시료를 시료별로 따로 둔다
+# (한 시료의 원소분석과 HHV 를 같은 행에서 가져온다는 원칙; 두 시료의 값을 섞지 않는다).
+YOUNG_COCONUT_HUSK_RB:
+  name: 어린 코코넛 외피 (Ratchaburi 시료, 코코피트 아님)
+  formula: {C: 10, H: 14.999, O: 6.3759, N: 0.064, S: 0.0058}
+  dHf_kJ_per_mol: -1463.7
+  u_dHf_kJ_per_mol: 100.4
+  M_g_per_mol: 238.317
+  phase: cr
+  source: >
+    Pratinthong, Vinitnantharat, Sukkhee, Intarapong, Manakij (2025), RMUTP Research Journal
+    Sciences and Technology 19(1), 181-194, doi 10.14456/jrmutp.2025.16. Ratchaburi 방향성 어린 코코넛 외피(husk)의
+    Table 1(근사분석, 봄브 열량계 HHV)과 Table 2(원소분석)를 2026-10-30 원문 PDF에서 직접 읽음.
+    입력(표 기준, 질량%): C 45.58, H 6.13, N 0.34, S 0.07, O(차이) 41.83, 회분 6.05, 수분 3.51, HHV 17.52±0.26 MJ/kg.
+  verification: secondary
+  note: >
+    코코피트가 아니다. 이 값을 코코피트 대용으로 쓰는 것은 근거 없는 가정이다.
+    표의 기준(건조/받은 상태)이 논문에 명시되지 않았다. 수분 포함 기준(풍건)으로 가정하고 수분의 H, O 를 제거한 뒤
+    건조 환산해 ΔfH° 를 구했다. 표를 건조 기준으로 보면 -1610.5 kJ/mol 로 바뀐다.
+    u 는 HHV 반복 SD(68.5)와 이 기준 가정 차이의 반폭(73.4)을 직교 합성한 값이며 한계값 성격이다(1시그마 아님).
+    O 는 차이법이고 논문 식 (2)에는 회분이 빠져 있으나 표의 값은 회분을 뺀 계산과 일치한다.
+    회분(건조 환산 6.27%)은 반응물에서 제외된다. secondary 인 이유: 입력 표는 원문에서 확인했으나 환산 가정은 이 저장소의 것이다.
+
+YOUNG_COCONUT_HUSK_SS:
+  name: 어린 코코넛 외피 (Samut Songkhram 시료, 코코피트 아님)
+  formula: {C: 10, H: 13.9079, O: 6.3219, N: 0.0672, S: 0.0033}
+  dHf_kJ_per_mol: -1114.7
+  u_dHf_kJ_per_mol: 103.8
+  M_g_per_mol: 236.318
+  phase: cr
+  source: >
+    Pratinthong, Vinitnantharat, Sukkhee, Intarapong, Manakij (2025), RMUTP Research Journal
+    Sciences and Technology 19(1), 181-194, doi 10.14456/jrmutp.2025.16. Samut Songkhram 방향성 어린 코코넛 외피(husk)의
+    Table 1(근사분석, 봄브 열량계 HHV)과 Table 2(원소분석)를 2026-10-30 원문 PDF에서 직접 읽음.
+    입력(표 기준, 질량%): C 45.93, H 5.89, N 0.36, S 0.04, O(차이) 42.88, 회분 4.90, 수분 4.73, HHV 18.39±0.13 MJ/kg.
+  verification: secondary
+  note: >
+    코코피트가 아니다. 이 값을 코코피트 대용으로 쓰는 것은 근거 없는 가정이다.
+    기준 가정은 YOUNG_COCONUT_HUSK_RB 와 같다. 표를 건조 기준으로 보면 -1311.0 kJ/mol 로 바뀐다.
+    u 는 HHV 반복 SD(34.0)와 기준 가정 차이의 반폭(98.1)을 직교 합성한 값이다(한계값 성격, 1시그마 아님).
+    두 산지 시료의 ΔfH° 가 약 349 kJ/mol 다르며 이는 각 시료의 u 보다 크다. 같은 종류 시료의 로트 차이가
+    반복 측정 편차보다 크다는 뜻이다. 회분(건조 환산 5.14%)은 반응물에서 제외된다.
+
 # 리그닌은 정의된 분자가 아니므로 여기에 고정값을 넣지 않는다.
 # 원소분석 + 실측 HHV 로 propcalc.hess 에서 Ingredient 를 만들어 사용할 것.
