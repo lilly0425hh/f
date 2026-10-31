@@ -15,6 +15,7 @@ import pandas as pd
 
 from .backends import ConvergenceError, get_backend
 from .backends.base import Result
+from .hess import dHf_from_hhv
 from .mixture import Ingredient, Mixture, load_ingredients, stoichiometry
 
 DEFAULT_PC_MPA = 6.895
@@ -142,6 +143,43 @@ def compare_fuels(
         frames.append(d)
     out = pd.concat(frames, ignore_index=True)
     out.attrs["assumptions"] = frames[0].attrs["assumptions"].rsplit(" | ", 1)[0]
+    return out
+
+
+def sweep_fuel_hhv(
+    formula: str | Mapping[str, float],
+    hhv_MJ_per_kg: Iterable[float],
+    ox_wt_pct: Iterable[float] = range(50, 81, 2),
+    oxidizer: str | Ingredient = "KNO3",
+    Pc_MPa: float = DEFAULT_PC_MPA,
+    Pe_MPa: float = DEFAULT_PE_MPA,
+    backend: str = "cea",
+    mode: str = "equilibrium",
+    db: Mapping[str, Ingredient] | None = None,
+) -> pd.DataFrame:
+    """가정형 지도: 조성(formula)을 고정한 가상 연료의 HHV 만 바꿔 가며 산화제 스윕을 반복한다.
+
+    HHV 는 건조·무회분(daf) 기준이며, 측정값이 아니라 격자 값이다. 가상 연료는 verification=doc_only 이고
+    어떤 실제 시료도 대표하지 않는다. 실제 시료의 값이 확보되면 이 지도 위에 점으로 얹어 해석하는 용도다.
+    긴 형식 표를 반환한다 (hhv_MJ_per_kg, dHf_kJ_per_mol 열 추가).
+    """
+    db = db if db is not None else load_ingredients()
+    frames = []
+    for hhv in hhv_MJ_per_kg:
+        r = dHf_from_hhv(formula, float(hhv), None, hhv_source="measured")
+        fuel = Ingredient.custom(
+            f"HYPO{int(round(hhv * 10))}", f"가상 연료 HHV={hhv:g} MJ/kg(daf)", r.formula, r.dHf_kJ_per_mol, None,
+            source=f"가정형 HHV 지도 격자 값 (HHV={hhv:g} MJ/kg, 조성 고정). 측정값이 아님",
+            verification="doc_only", note="어떤 실제 시료도 대표하지 않는다")
+        d = sweep_oxidizer(fuel, oxidizer, ox_wt_pct, Pc_MPa, Pe_MPa, backend, mode, db)
+        d.insert(0, "dHf_kJ_per_mol", r.dHf_kJ_per_mol)
+        d.insert(0, "hhv_MJ_per_kg", float(hhv))
+        frames.append(d)
+    out = pd.concat(frames, ignore_index=True)
+    f_txt = " ".join(f"{el}{v:g}" for el, v in r.formula.items())
+    out.attrs["assumptions"] = frames[0].attrs["assumptions"].rsplit(" | ", 1)[0] + \
+        f" | 가정형 지도: 연료 조성 {f_txt}(고정), HHV(daf)는 격자 값, 회분 제외"
+    out.attrs["oxidizer"] = frames[0].attrs["oxidizer"]
     return out
 
 
